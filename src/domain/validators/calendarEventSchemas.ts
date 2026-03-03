@@ -6,9 +6,14 @@ const dateString = z
   .refine(isParsableDate, "Date must be ISO 8601 or YYYY-MM-DD");
 
 const eventType = z.enum(["debit", "credit"]);
+const monthString = z.string().regex(/^\d{4}-\d{2}$/, "month must be YYYY-MM");
+const weekStartsOn = z
+  .coerce
+  .number()
+  .int()
+  .refine((value) => value === 0 || value === 1, "weekStartsOn must be 0 or 1");
 
 export const calendarEventCreateSchema = z.object({
-  userId: z.string().min(1),
   title: z.string().min(1).max(255),
   start: dateString,
   end: dateString.optional().nullable(),
@@ -31,6 +36,11 @@ export const calendarEventUpdateSchema = z
   });
 
 export const calendarEventQuerySchema = z.object({
-  userId: z.string().optional(),
-  month: z.string().regex(/^\d{4}-\d{2}$/, "month must be YYYY-MM")
+  month: monthString.optional(),
+  weekStartsOn: weekStartsOn.default(0)
+});
+
+export const calendarDayQuerySchema = z.object({
+  month: monthString,
+  weekStartsOn: weekStartsOn.default(0)
 });

@@ -24,6 +24,8 @@ export type CalendarEventCreate = {
   color?: string | null;
 };
 
+export type CalendarEventCreateInput = Omit<CalendarEventCreate, "userId">;
+
 export type CalendarEventUpdate = Partial<Omit<CalendarEventCreate, "userId">>;
 
 export type CalendarEventFilters = {

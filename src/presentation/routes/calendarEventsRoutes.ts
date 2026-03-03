@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { AuthService } from "../../application/services/authService.js";
 import type { CalendarEventService } from "../../application/services/calendarEventService.js";
 import {
   createCalendarEventHandler,
@@ -12,10 +13,16 @@ import {
   calendarEventQuerySchema,
   calendarEventUpdateSchema
 } from "../../domain/validators/calendarEventSchemas.js";
+import { requireAuth } from "../middleware/requireAuth.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";
 
-export const createCalendarEventsRouter = (service: CalendarEventService): Router => {
+export const createCalendarEventsRouter = (
+  service: CalendarEventService,
+  authService: AuthService
+): Router => {
   const router = Router();
+
+  router.use(requireAuth(authService));
 
   router.get(
     "/calendar-events",
