@@ -1,19 +1,14 @@
 import express from "express";
 import cors from "cors";
 import { env } from "./config/env.js";
-import { createCalendarEventService, type CalendarEventService } from "./application/services/calendarEventService.js";
-import { MysqlCalendarEventRepository } from "./infrastructure/repositories/mysqlCalendarEventRepository.js";
-import { getPool } from "./db/mysql.js";
+import { createContainer, type AppContainerOverrides } from "./container.js";
 import { createCalendarEventsRouter } from "./presentation/routes/calendarEventsRoutes.js";
 import { createHealthRouter } from "./presentation/routes/healthRoutes.js";
 import { errorHandler } from "./presentation/middleware/errorHandler.js";
-import { CalendarDayService, createCalendarDayService } from "./application/services/calendarDayService.js";
 import { createCalendarDaysRouter } from "./presentation/routes/calendarDayRoutes.js";
+import { createAuthRouter } from "./presentation/routes/authRoutes.js";
 
-export type AppDependencies = {
-  calendarEventService?: CalendarEventService;
-  calendarDaysService?: CalendarDayService
-};
+export type AppDependencies = AppContainerOverrides;
 
 export const createApp = (deps: AppDependencies = {}) => {
   const app = express();
@@ -21,17 +16,12 @@ export const createApp = (deps: AppDependencies = {}) => {
   app.use(cors({ origin: env.CORS_ORIGIN }));
   app.use(express.json());
 
-  const calendarEventService =
-    deps.calendarEventService ??
-    createCalendarEventService(new MysqlCalendarEventRepository(getPool()));
-
-  const calendarDaysService =
-    deps.calendarDaysService ??
-    createCalendarDayService(new MysqlCalendarEventRepository(getPool()));
+  const container = createContainer(deps);
 
   app.use("/api/v1", createHealthRouter());
-  app.use("/api/v1", createCalendarEventsRouter(calendarEventService));
-  app.use("/api/v1", createCalendarDaysRouter(calendarDaysService));
+  app.use("/api/v1", createAuthRouter(container.authService));
+  app.use("/api/v1", createCalendarEventsRouter(container.calendarEventService, container.authService));
+  app.use("/api/v1", createCalendarDaysRouter(container.calendarDaysService, container.authService));
 
   app.get("/", (_req, res) => {
     res.json({ message: "Plannance API up. See /api/v1/health" });

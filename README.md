@@ -2,6 +2,8 @@
 
 Backend API for `plannance-front`, focused on calendar-based cash flow events. The project follows a Clean Architecture layout with explicit domain, application services, repositories, and presentation handlers.
 
+The HTTP app now uses a small IoC/composition root (`src/container.ts`) so service wiring is explicit and easier to extend.
+
 ## Requirements
 
 - Node `v22.18.0`
@@ -14,6 +16,7 @@ Backend API for `plannance-front`, focused on calendar-based cash flow events. T
 - `src/infrastructure`: MySQL repository implementations
 - `src/presentation`: HTTP handlers, routes, and middleware
 - `src/db`: database connection and schema
+- `src/container.ts`: application dependency wiring
 
 ## Environment
 
@@ -29,7 +32,12 @@ DB_USER=
 DB_PASSWORD=
 DB_NAME=
 DB_CONNECTION_LIMIT=10
+GOOGLE_CLIENT_ID=
+AUTH_JWT_SECRET=replace-with-a-long-random-secret
+AUTH_TOKEN_TTL_SECONDS=3600
 ```
+
+`GOOGLE_CLIENT_ID` must be your Google OAuth client ID from Google Identity Services. A standard Google API key is not enough to securely verify a sign-in token on the backend.
 
 ## Database
 
@@ -51,29 +59,51 @@ Base path: `/api/v1`
 - `GET /health`
   - Returns service status.
 
-- `GET /calendar-events?userId=...&month=YYYY-MM`
-  - Lists calendar events. `userId` and `month` are optional filters.
-
-- `GET /calendar-events/:id`
-  - Returns a single event by id.
-
-- `POST /calendar-events`
+- `POST /auth/google`
   - Body:
     ```json
     {
-      "userId": "user-123",
+      "idToken": "google-id-token"
+    }
+    ```
+  - Verifies a Google ID token and returns an application bearer token.
+
+- `GET /auth/me`
+  - Requires `Authorization: Bearer <token>`.
+  - Returns the authenticated user profile derived from the access token.
+
+- `GET /calendar-events?month=YYYY-MM&weekStartsOn=0|1`
+  - Requires `Authorization: Bearer <token>`.
+  - Lists the authenticated user's calendar events. `month` is optional.
+
+- `GET /calendar-events/:id`
+  - Requires `Authorization: Bearer <token>`.
+  - Returns a single event by id.
+
+- `POST /calendar-events`
+  - Requires `Authorization: Bearer <token>`.
+  - Body:
+    ```json
+    {
       "title": "Payday",
       "start": "2026-01-05T00:00:00.000Z",
       "end": null,
       "amount": 1500,
-      "type": "credit",
+      "type": "credit"
     }
     ```
+  - `userId` is taken from the authenticated Google user, not from the request body.
 
 - `PUT /calendar-events/:id`
+  - Requires `Authorization: Bearer <token>`.
   - Body: any subset of fields above (at least one field required).
 
 - `DELETE /calendar-events/:id`
+  - Requires `Authorization: Bearer <token>`.
+
+- `GET /calendar-day?month=YYYY-MM&weekStartsOn=0|1`
+  - Requires `Authorization: Bearer <token>`.
+  - Returns the authenticated user's month grid summary.
 
 ## Tests
 

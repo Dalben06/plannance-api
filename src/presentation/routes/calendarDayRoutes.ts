@@ -1,17 +1,24 @@
 import { Router } from "express";
+import type { AuthService } from "../../application/services/authService.js";
 import {
-  calendarEventQuerySchema,
+  calendarDayQuerySchema
 } from "../../domain/validators/calendarEventSchemas.js";
 import { validateQuery } from "../middleware/validate.js";
 import { CalendarDayService } from "../../application/services/calendarDayService.js";
 import { listCalendarDayHandler } from "../handlers/calendarDaysHanlders.js";
+import { requireAuth } from "../middleware/requireAuth.js";
 
-export const createCalendarDaysRouter = (service: CalendarDayService): Router => {
+export const createCalendarDaysRouter = (
+  service: CalendarDayService,
+  authService: AuthService
+): Router => {
   const router = Router();
+
+  router.use(requireAuth(authService));
 
   router.get(
     "/calendar-day",
-    validateQuery(calendarEventQuerySchema),
+    validateQuery(calendarDayQuerySchema),
     listCalendarDayHandler(service)
   );
 
