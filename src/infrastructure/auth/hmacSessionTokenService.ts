@@ -3,13 +3,13 @@ import { z } from "zod";
 import {
   AuthenticationError,
   type AuthenticatedUser,
-  type SessionTokenPayload
+  type SessionTokenPayload,
 } from "../../domain/auth.js";
 import type { SessionTokenService } from "../../application/ports/sessionTokenService.js";
 
 const jwtHeader = {
   alg: "HS256",
-  typ: "JWT"
+  typ: "JWT",
 } as const;
 
 const sessionTokenPayloadSchema = z.object({
@@ -19,7 +19,7 @@ const sessionTokenPayloadSchema = z.object({
   picture: z.string().nullable(),
   emailVerified: z.boolean(),
   iat: z.number().int().nonnegative(),
-  exp: z.number().int().positive()
+  exp: z.number().int().positive(),
 });
 
 const encodeBase64Url = (value: string): string => Buffer.from(value).toString("base64url");
@@ -40,11 +40,11 @@ export class HmacSessionTokenService implements SessionTokenService {
       picture: user.picture,
       emailVerified: user.emailVerified,
       iat: issuedAt,
-      exp: issuedAt + this.ttlSeconds
+      exp: issuedAt + this.ttlSeconds,
     };
     return {
       token: this.sign(payload),
-      expiresIn: this.ttlSeconds
+      expiresIn: this.ttlSeconds,
     };
   }
 
@@ -106,7 +106,7 @@ export class HmacSessionTokenService implements SessionTokenService {
     return [
       encodedHeader,
       encodedPayload,
-      this.createSignature(`${encodedHeader}.${encodedPayload}`, secret)
+      this.createSignature(`${encodedHeader}.${encodedPayload}`, secret),
     ].join(".");
   }
 

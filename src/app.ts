@@ -22,8 +22,14 @@ export const createApp = (deps: AppDependencies = {}) => {
   app.use("/api/v1", createHealthRouter());
   app.use("/api/v1", createUserRouter(container.userService));
   app.use("/api/v1", createAuthRouter(container.authService));
-  app.use("/api/v1", createCalendarEventsRouter(container.calendarEventService, container.authService));
-  app.use("/api/v1", createCalendarDaysRouter(container.calendarDaysService, container.authService));
+  app.use(
+    "/api/v1",
+    createCalendarEventsRouter(container.calendarEventService, container.authService)
+  );
+  app.use(
+    "/api/v1",
+    createCalendarDaysRouter(container.calendarDaysService, container.authService)
+  );
 
   app.get("/", (_req, res) => {
     res.json({ message: "Plannance API up. See /api/v1/health" });

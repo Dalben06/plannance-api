@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { createUserService } from "../src/application/services/userService.js";
-import type { UserRepository } from "../src/application/ports/userRepository.js";
-import type { PasswordHasher } from "../src/application/ports/passwordHasher.js";
-import type { UserView } from "../src/domain/user.js";
+import { createUserService } from "../../../src/application/services/userService.js";
+import type { UserRepository } from "../../../src/application/ports/userRepository.js";
+import type { PasswordHasher } from "../../../src/application/ports/passwordHasher.js";
+import type { UserView } from "../../../src/domain/user.js";
 
 const sampleUserView: UserView = {
   id: "generated-uuid",
@@ -30,7 +30,12 @@ describe("UserService", () => {
       const { repository, passwordHasher } = buildMocks();
       const service = createUserService(repository, passwordHasher);
 
-      await service.create({ name: "Test User", email: "user@example.com", picture: null, password: "plain" });
+      await service.create({
+        name: "Test User",
+        email: "user@example.com",
+        picture: null,
+        password: "plain",
+      });
 
       expect(passwordHasher.hash).toHaveBeenCalledWith("plain");
       expect(repository.create).toHaveBeenCalledWith({
@@ -44,7 +49,12 @@ describe("UserService", () => {
     it("does not mutate the input form", async () => {
       const { repository, passwordHasher } = buildMocks();
       const service = createUserService(repository, passwordHasher);
-      const form = { name: "Test User", email: "user@example.com", picture: null, password: "plain" };
+      const form = {
+        name: "Test User",
+        email: "user@example.com",
+        picture: null,
+        password: "plain",
+      };
 
       await service.create(form);
 
@@ -55,7 +65,12 @@ describe("UserService", () => {
       const { repository, passwordHasher } = buildMocks();
       const service = createUserService(repository, passwordHasher);
 
-      const result = await service.create({ name: "Test User", email: "user@example.com", picture: null, password: "plain" });
+      const result = await service.create({
+        name: "Test User",
+        email: "user@example.com",
+        picture: null,
+        password: "plain",
+      });
 
       expect(result).toEqual(sampleUserView);
     });
@@ -64,7 +79,12 @@ describe("UserService", () => {
       const { repository, passwordHasher } = buildMocks();
       const service = createUserService(repository, passwordHasher);
 
-      await service.create({ name: "Test User", email: "user@example.com", picture: null, password: "plain" });
+      await service.create({
+        name: "Test User",
+        email: "user@example.com",
+        picture: null,
+        password: "plain",
+      });
 
       expect(repository.create).toHaveBeenCalledWith(expect.objectContaining({ picture: null }));
     });

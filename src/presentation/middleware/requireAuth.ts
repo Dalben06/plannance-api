@@ -17,7 +17,8 @@ const getBearerToken = (authorizationHeader?: string): string | null => {
   return token;
 };
 
-export const requireAuth = (authService: AuthService) =>
+export const requireAuth =
+  (authService: AuthService) =>
   (req: Request, _res: Response, next: NextFunction): void => {
     const accessToken = getBearerToken(req.header("authorization"));
 

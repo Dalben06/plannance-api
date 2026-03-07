@@ -1,6 +1,6 @@
-import { createApp } from "../src/app.js";
+import { createApp } from "../../src/app.js";
 import { describe, expect, it } from "vitest";
-import { buildAppDependencies, sendRequest } from "./testUtils.js";
+import { buildAppDependencies, sendRequest } from "../testUtils.js";
 
 const sampleEvent = {
   id: "1",
@@ -12,7 +12,7 @@ const sampleEvent = {
   type: "credit" as const,
   color: "#00C853",
   createdAt: "2026-01-01T00:00:00.000Z",
-  updatedAt: "2026-01-01T00:00:00.000Z"
+  updatedAt: "2026-01-01T00:00:00.000Z",
 };
 
 describe("calendar events routes", () => {
@@ -22,7 +22,7 @@ describe("calendar events routes", () => {
 
     const response = await sendRequest(app, {
       method: "GET",
-      url: "/api/v1/calendar-events?month=2026-01"
+      url: "/api/v1/calendar-events?month=2026-01",
     });
 
     expect(response.status).toBe(401);
@@ -38,7 +38,7 @@ describe("calendar events routes", () => {
     const response = await sendRequest(app, {
       method: "GET",
       url: "/api/v1/calendar-events?month=2026-01&userId=spoofed-user&weekStartsOn=1",
-      headers: { Authorization: "Bearer test-token" }
+      headers: { Authorization: "Bearer test-token" },
     });
 
     expect(response.status).toBe(200);
@@ -46,7 +46,7 @@ describe("calendar events routes", () => {
     expect(deps.calendarEventService.listEvents).toHaveBeenCalledWith({
       userId: "user-123",
       month: "2026-01",
-      weekStartsOn: 1
+      weekStartsOn: 1,
     });
     expect(deps.authService.verifyAccessToken).toHaveBeenCalledWith("test-token");
   });
@@ -59,7 +59,7 @@ describe("calendar events routes", () => {
     const response = await sendRequest(app, {
       method: "GET",
       url: "/api/v1/calendar-events/1",
-      headers: { Authorization: "Bearer test-token" }
+      headers: { Authorization: "Bearer test-token" },
     });
 
     expect(response.status).toBe(200);
@@ -74,7 +74,25 @@ describe("calendar events routes", () => {
     const response = await sendRequest(app, {
       method: "GET",
       url: "/api/v1/calendar-events/999",
-      headers: { Authorization: "Bearer test-token" }
+      headers: { Authorization: "Bearer test-token" },
+    });
+
+    expect(response.status).toBe(404);
+    expect(response.body.error).toBe("Calendar event not found");
+  });
+
+  it("returns 404 when event exists but belongs to a different user (ownership check)", async () => {
+    const deps = buildAppDependencies();
+    deps.calendarEventService.getEventById.mockResolvedValue({
+      ...sampleEvent,
+      userId: "other-user-456",
+    });
+    const app = createApp(deps);
+
+    const response = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/calendar-events/1",
+      headers: { Authorization: "Bearer test-token" },
     });
 
     expect(response.status).toBe(404);
@@ -97,8 +115,8 @@ describe("calendar events routes", () => {
         end: sampleEvent.end,
         amount: sampleEvent.amount,
         type: sampleEvent.type,
-        color: sampleEvent.color
-      }
+        color: sampleEvent.color,
+      },
     });
 
     expect(response.status).toBe(201);
@@ -110,7 +128,7 @@ describe("calendar events routes", () => {
       end: sampleEvent.end,
       amount: sampleEvent.amount,
       type: sampleEvent.type,
-      color: sampleEvent.color
+      color: sampleEvent.color,
     });
   });
 
@@ -124,7 +142,7 @@ describe("calendar events routes", () => {
       method: "PUT",
       url: "/api/v1/calendar-events/1",
       headers: { Authorization: "Bearer test-token" },
-      body: { title: "Updated" }
+      body: { title: "Updated" },
     });
 
     expect(response.status).toBe(200);
@@ -141,7 +159,7 @@ describe("calendar events routes", () => {
       method: "PUT",
       url: "/api/v1/calendar-events/999",
       headers: { Authorization: "Bearer test-token" },
-      body: { title: "Updated" }
+      body: { title: "Updated" },
     });
 
     expect(response.status).toBe(404);
@@ -158,7 +176,7 @@ describe("calendar events routes", () => {
     const response = await sendRequest(app, {
       method: "DELETE",
       url: "/api/v1/calendar-events/1",
-      headers: { Authorization: "Bearer test-token" }
+      headers: { Authorization: "Bearer test-token" },
     });
 
     expect(response.status).toBe(204);
@@ -172,7 +190,7 @@ describe("calendar events routes", () => {
     const response = await sendRequest(app, {
       method: "DELETE",
       url: "/api/v1/calendar-events/999",
-      headers: { Authorization: "Bearer test-token" }
+      headers: { Authorization: "Bearer test-token" },
     });
 
     expect(response.status).toBe(404);

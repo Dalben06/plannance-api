@@ -8,7 +8,7 @@ export type UserService = {
 
 export const createUserService = (
   repository: UserRepository,
-  passwordHasher: PasswordHasher,
+  passwordHasher: PasswordHasher
 ): UserService => ({
   create: async (form) => {
     const hashedPassword = passwordHasher.hash(form.password);

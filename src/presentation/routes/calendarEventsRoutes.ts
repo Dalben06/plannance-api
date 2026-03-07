@@ -6,12 +6,12 @@ import {
   deleteCalendarEventHandler,
   getCalendarEventByIdHandler,
   listCalendarEventsHandler,
-  updateCalendarEventHandler
+  updateCalendarEventHandler,
 } from "../handlers/calendarEventsHandlers.js";
 import {
   calendarEventCreateSchema,
   calendarEventQuerySchema,
-  calendarEventUpdateSchema
+  calendarEventUpdateSchema,
 } from "../../domain/validators/calendarEventSchemas.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { validateBody, validateQuery } from "../middleware/validate.js";

@@ -1,8 +1,6 @@
 import { Router } from "express";
 import type { AuthService } from "../../application/services/authService.js";
-import {
-  calendarDayQuerySchema
-} from "../../domain/validators/calendarEventSchemas.js";
+import { calendarDayQuerySchema } from "../../domain/validators/calendarEventSchemas.js";
 import { validateQuery } from "../middleware/validate.js";
 import { CalendarDayService } from "../../application/services/calendarDayService.js";
 import { listCalendarDayHandler } from "../handlers/calendarDaysHandlers.js";

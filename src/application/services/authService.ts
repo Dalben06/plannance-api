@@ -3,7 +3,7 @@ import {
   type AuthForm,
   type AuthSession,
   type AuthenticatedUser,
-  type SessionTokenPayload
+  type SessionTokenPayload,
 } from "../../domain/auth.js";
 import type { GoogleIdentityProvider } from "../ports/googleIdentityProvider.js";
 import type { SessionTokenService } from "../ports/sessionTokenService.js";
@@ -29,9 +29,8 @@ export const createAuthService = (
   googleIdentityProvider: GoogleIdentityProvider,
   sessionTokenService: SessionTokenService,
   userRepository: UserRepository,
-  passwordHasher: PasswordHasher,
+  passwordHasher: PasswordHasher
 ): AuthService => {
-
   const authenticateWithGoogle = async (tokenId: string): Promise<AuthSession> => {
     const googleUser = await googleIdentityProvider.verifyIdToken(tokenId);
 
@@ -59,7 +58,10 @@ export const createAuthService = (
     };
   };
 
-  const authenticateWithCredentials = async (username: string, password: string): Promise<AuthSession> => {
+  const authenticateWithCredentials = async (
+    username: string,
+    password: string
+  ): Promise<AuthSession> => {
     if (!username.trim() || !password.trim()) {
       throw new AuthenticationError("Username and password are required");
     }

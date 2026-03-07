@@ -1,8 +1,6 @@
 export const isParsableDate = (value: string): boolean => !Number.isNaN(Date.parse(value));
 
-export const parseMonthRangeUtc = (
-  month: string
-): { start: Date; end: Date } | null => {
+export const parseMonthRangeUtc = (month: string): { start: Date; end: Date } | null => {
   const match = /^\d{4}-\d{2}$/.exec(month);
   if (!match) return null;
   const [yearStr, monthStr] = month.split("-");
@@ -20,7 +18,7 @@ const pad = (value: number): string => value.toString().padStart(2, "0");
 export const toMysqlDateTime = (date: Date): string => {
   return [
     `${date.getUTCFullYear()}-${pad(date.getUTCMonth() + 1)}-${pad(date.getUTCDate())}`,
-    `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`
+    `${pad(date.getUTCHours())}:${pad(date.getUTCMinutes())}:${pad(date.getUTCSeconds())}`,
   ].join(" ");
 };
 
@@ -46,7 +44,11 @@ export function startOfMonth(d: Date) {
   return makeDate(d.getFullYear(), d.getMonth(), 1);
 }
 export function isSameDay(a: Date, b: Date) {
-  return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 export function startOfWeek(d: Date, weekStartsOn: 0 | 1) {
   const x = atNoon(d);

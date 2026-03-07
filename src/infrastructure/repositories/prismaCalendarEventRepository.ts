@@ -3,7 +3,7 @@ import type {
   CalendarEvent,
   CalendarEventCreate,
   CalendarEventFilters,
-  CalendarEventUpdate
+  CalendarEventUpdate,
 } from "../../domain/calendarEvent.js";
 import type { CalendarEventRepository } from "../../application/ports/calendarEventRepository.js";
 import { parseMonthRangeUtc, toIsoString } from "../../utils/date.js";
@@ -18,7 +18,7 @@ const mapRow = (row: PrismaCalendarEvent): CalendarEvent => ({
   type: row.type,
   color: row.color ?? null,
   createdAt: toIsoString(row.createdAt) ?? row.createdAt.toISOString(),
-  updatedAt: toIsoString(row.updatedAt) ?? row.updatedAt.toISOString()
+  updatedAt: toIsoString(row.updatedAt) ?? row.updatedAt.toISOString(),
 });
 
 export class PrismaCalendarEventRepository implements CalendarEventRepository {
@@ -39,7 +39,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
     }
     const rows = await this.prisma.calendarEvent.findMany({
       where,
-      orderBy: { startAt: "asc" }
+      orderBy: { startAt: "asc" },
     });
 
     return rows.map(mapRow);
@@ -47,7 +47,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
 
   async getById(id: string): Promise<CalendarEvent | null> {
     const row = await this.prisma.calendarEvent.findUnique({
-      where: { id: BigInt(id) }
+      where: { id: BigInt(id) },
     });
 
     return row ? mapRow(row) : null;
@@ -62,8 +62,8 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         endAt: input.end ? new Date(input.end) : null,
         amount: input.amount,
         type: input.type,
-        color: input.color ?? null
-      }
+        color: input.color ?? null,
+      },
     });
 
     return mapRow(row);
@@ -86,7 +86,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
     try {
       const row = await this.prisma.calendarEvent.update({
         where: { id: BigInt(id) },
-        data
+        data,
       });
       return mapRow(row);
     } catch (err: unknown) {
@@ -98,7 +98,7 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
   async delete(id: string): Promise<boolean> {
     try {
       await this.prisma.calendarEvent.delete({
-        where: { id: BigInt(id) }
+        where: { id: BigInt(id) },
       });
       return true;
     } catch (err: unknown) {

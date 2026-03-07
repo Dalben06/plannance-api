@@ -9,6 +9,7 @@ import type { UserService } from "../src/application/services/userService.js";
 import type { AuthenticatedUser } from "../src/domain/auth.js";
 
 type MockedService<T> = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   [K in keyof T]: T[K] extends (...args: any[]) => any ? MockedFunction<T[K]> : T[K];
 };
 
@@ -17,20 +18,20 @@ export const buildMockCalendarEventService = (): MockedService<CalendarEventServ
   getEventById: vi.fn<CalendarEventService["getEventById"]>(),
   createEvent: vi.fn<CalendarEventService["createEvent"]>(),
   updateEvent: vi.fn<CalendarEventService["updateEvent"]>(),
-  deleteEvent: vi.fn<CalendarEventService["deleteEvent"]>()
+  deleteEvent: vi.fn<CalendarEventService["deleteEvent"]>(),
 });
 
 export const buildMockCalendarDayService = (): MockedService<CalendarDayService> => ({
-  listMonthSummary: vi.fn<CalendarDayService["listMonthSummary"]>()
+  listMonthSummary: vi.fn<CalendarDayService["listMonthSummary"]>(),
 });
 
 export const buildMockAuthService = (): MockedService<AuthService> => ({
   authenticate: vi.fn<AuthService["authenticate"]>(),
-  verifyAccessToken: vi.fn<AuthService["verifyAccessToken"]>()
+  verifyAccessToken: vi.fn<AuthService["verifyAccessToken"]>(),
 });
 
 export const buildMockUserService = (): MockedService<UserService> => ({
-  create: vi.fn<UserService["create"]>()
+  create: vi.fn<UserService["create"]>(),
 });
 
 export const sampleAuthenticatedUser: AuthenticatedUser = {
@@ -38,7 +39,7 @@ export const sampleAuthenticatedUser: AuthenticatedUser = {
   email: "user@example.com",
   name: "Plannance User",
   picture: "https://example.com/avatar.png",
-  emailVerified: true
+  emailVerified: true,
 };
 
 export const buildAppDependencies = () => {
@@ -53,7 +54,7 @@ export const buildAppDependencies = () => {
     calendarEventService,
     calendarDaysService,
     authService,
-    userService
+    userService,
   };
 };
 
@@ -77,7 +78,10 @@ type TestResponse = {
  * @param options - The request options including method, url, headers, and body.
  * @returns An object containing status, headers, body (parsed JSON if possible), and text (raw response body).
  */
-export const sendRequest = async (app: Application, options: RequestOptions): Promise<TestResponse> => {
+export const sendRequest = async (
+  app: Application,
+  options: RequestOptions
+): Promise<TestResponse> => {
   const req = new IncomingMessage(new Socket());
   req.method = options.method.toUpperCase();
   req.url = options.url;
@@ -88,7 +92,6 @@ export const sendRequest = async (app: Application, options: RequestOptions): Pr
     for (const [key, value] of Object.entries(options.headers)) {
       const lowerKey = key.toLowerCase();
       if (seenHeaderKeys.has(lowerKey)) {
-        // eslint-disable-next-line no-console
         console.warn(`Duplicate header key detected: "${key}". Only the last value will be used.`);
       }
       seenHeaderKeys.add(lowerKey);
@@ -143,7 +146,7 @@ export const sendRequest = async (app: Application, options: RequestOptions): Pr
         status: res.statusCode,
         headers: res.getHeaders() as TestResponse["headers"],
         body,
-        text
+        text,
       });
       return res;
     }) as typeof res.end;

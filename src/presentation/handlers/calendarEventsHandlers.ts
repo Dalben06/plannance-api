@@ -3,7 +3,7 @@ import type { CalendarEventService } from "../../application/services/calendarEv
 import type {
   CalendarEventCreateInput,
   CalendarEventUpdate,
-  CalendarWeekStartsOn
+  CalendarWeekStartsOn,
 } from "../../domain/calendarEvent.js";
 import { HttpError } from "../middleware/errorHandler.js";
 
@@ -18,7 +18,8 @@ const getAuthenticatedUserId = (req: Request): string => {
 const getWeekStartsOn = (rawValue: unknown): CalendarWeekStartsOn =>
   (rawValue === 1 || rawValue === "1" ? 1 : 0) as CalendarWeekStartsOn;
 
-export const listCalendarEventsHandler = (service: CalendarEventService) =>
+export const listCalendarEventsHandler =
+  (service: CalendarEventService) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthenticatedUserId(req);
@@ -31,11 +32,12 @@ export const listCalendarEventsHandler = (service: CalendarEventService) =>
     }
   };
 
-export const getCalendarEventByIdHandler = (service: CalendarEventService) =>
+export const getCalendarEventByIdHandler =
+  (service: CalendarEventService) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthenticatedUserId(req);
-      const event = await service.getEventById(req.params?.id ?? '');
+      const event = await service.getEventById(req.params?.id ?? "");
       if (!event || event.userId !== userId) {
         throw new HttpError("Calendar event not found", 404);
       }
@@ -45,13 +47,14 @@ export const getCalendarEventByIdHandler = (service: CalendarEventService) =>
     }
   };
 
-export const createCalendarEventHandler = (service: CalendarEventService) =>
+export const createCalendarEventHandler =
+  (service: CalendarEventService) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const payload = req.body as CalendarEventCreateInput;
       const created = await service.createEvent({
         ...payload,
-        userId: getAuthenticatedUserId(req)
+        userId: getAuthenticatedUserId(req),
       });
       res.status(201).json({ data: created });
     } catch (error) {
@@ -59,11 +62,12 @@ export const createCalendarEventHandler = (service: CalendarEventService) =>
     }
   };
 
-export const updateCalendarEventHandler = (service: CalendarEventService) =>
+export const updateCalendarEventHandler =
+  (service: CalendarEventService) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthenticatedUserId(req);
-      const existing = await service.getEventById(req.params?.id ?? '');
+      const existing = await service.getEventById(req.params?.id ?? "");
       if (!existing || existing.userId !== userId) {
         throw new HttpError("Calendar event not found", 404);
       }
@@ -79,11 +83,12 @@ export const updateCalendarEventHandler = (service: CalendarEventService) =>
     }
   };
 
-export const deleteCalendarEventHandler = (service: CalendarEventService) =>
+export const deleteCalendarEventHandler =
+  (service: CalendarEventService) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
     try {
       const userId = getAuthenticatedUserId(req);
-      const existing = await service.getEventById(req.params?.id ?? '');
+      const existing = await service.getEventById(req.params?.id ?? "");
       if (!existing || existing.userId !== userId) {
         throw new HttpError("Calendar event not found", 404);
       }
