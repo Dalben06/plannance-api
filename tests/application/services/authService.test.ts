@@ -3,7 +3,10 @@ import { createAuthService } from "../../../src/application/services/authService
 import { AuthenticationError } from "../../../src/domain/auth.js";
 import type { GoogleIdentityProvider } from "../../../src/application/ports/googleIdentityProvider.js";
 import type { SessionTokenService } from "../../../src/application/ports/sessionTokenService.js";
-import type { UserRepository } from "../../../src/application/ports/userRepository.js";
+import type {
+  UserRepository,
+  UserWithPassword,
+} from "../../../src/application/ports/userRepository.js";
 import type { PasswordHasher } from "../../../src/application/ports/passwordHasher.js";
 import type { AuthenticatedUser } from "../../../src/domain/auth.js";
 import type { UserView } from "../../../src/domain/user.js";
@@ -33,12 +36,12 @@ const buildMocks = () => {
   };
   const userRepository: UserRepository = {
     findById: vi.fn(),
-    getByCredentials: vi.fn(),
+    findByEmail: vi.fn(),
     create: vi.fn(),
   };
   const passwordHasher: PasswordHasher = {
-    hash: vi.fn().mockReturnValue("hashed-password"),
-    verify: vi.fn(),
+    hash: vi.fn().mockResolvedValue("hashed-password"),
+    verify: vi.fn().mockResolvedValue(false),
   };
   return { googleProvider, sessionTokenService, userRepository, passwordHasher };
 };
@@ -121,9 +124,11 @@ describe("AuthService", () => {
   });
 
   describe("authenticate with email_password", () => {
-    it("hashes the password and returns a session for valid credentials", async () => {
+    it("looks up user by email, verifies password, and returns a session for valid credentials", async () => {
       const { googleProvider, sessionTokenService, userRepository, passwordHasher } = buildMocks();
-      vi.mocked(userRepository.getByCredentials).mockResolvedValue(sampleUserView);
+      const userWithPassword: UserWithPassword = { ...sampleUserView, passwordHash: "stored-hash" };
+      vi.mocked(userRepository.findByEmail).mockResolvedValue(userWithPassword);
+      vi.mocked(passwordHasher.verify).mockResolvedValue(true);
 
       const service = createAuthService(
         googleProvider,
@@ -137,11 +142,8 @@ describe("AuthService", () => {
         password: "plainpassword",
       });
 
-      expect(passwordHasher.hash).toHaveBeenCalledWith("plainpassword");
-      expect(userRepository.getByCredentials).toHaveBeenCalledWith(
-        "user@example.com",
-        "hashed-password"
-      );
+      expect(userRepository.findByEmail).toHaveBeenCalledWith("user@example.com");
+      expect(passwordHasher.verify).toHaveBeenCalledWith("plainpassword", "stored-hash");
       expect(session.accessToken).toBe("mock-token");
       expect(session.user.emailVerified).toBe(true);
     });
@@ -178,11 +180,31 @@ describe("AuthService", () => {
       ).rejects.toBeInstanceOf(AuthenticationError);
     });
 
-    it("propagates AuthenticationError from repository on invalid credentials", async () => {
+    it("throws AuthenticationError when user is not found", async () => {
       const { googleProvider, sessionTokenService, userRepository, passwordHasher } = buildMocks();
-      vi.mocked(userRepository.getByCredentials).mockRejectedValue(
-        new AuthenticationError("Invalid credentials")
+      vi.mocked(userRepository.findByEmail).mockResolvedValue(null);
+
+      const service = createAuthService(
+        googleProvider,
+        sessionTokenService,
+        userRepository,
+        passwordHasher
       );
+
+      await expect(
+        service.authenticate({
+          type: "email_password",
+          username: "unknown@example.com",
+          password: "wrong",
+        })
+      ).rejects.toBeInstanceOf(AuthenticationError);
+    });
+
+    it("throws AuthenticationError when password does not match", async () => {
+      const { googleProvider, sessionTokenService, userRepository, passwordHasher } = buildMocks();
+      const userWithPassword: UserWithPassword = { ...sampleUserView, passwordHash: "stored-hash" };
+      vi.mocked(userRepository.findByEmail).mockResolvedValue(userWithPassword);
+      vi.mocked(passwordHasher.verify).mockResolvedValue(false);
 
       const service = createAuthService(
         googleProvider,

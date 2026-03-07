@@ -11,7 +11,7 @@ export const createUserService = (
   passwordHasher: PasswordHasher
 ): UserService => ({
   create: async (form) => {
-    const hashedPassword = passwordHasher.hash(form.password);
+    const hashedPassword = await passwordHasher.hash(form.password);
     return repository.create({
       name: form.name,
       email: form.email,
