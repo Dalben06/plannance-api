@@ -18,7 +18,7 @@ npm run test
 npm run test:watch
 
 # Run a single test file
-npx vitest run tests/auth.test.ts
+npx vitest run tests/presentation/auth.test.ts
 
 # Start production server
 npm start
@@ -28,6 +28,13 @@ npx prisma db push
 
 # Regenerate Prisma client after schema changes
 npx prisma generate
+
+# Lint
+npm run lint
+npm run lint:fix
+
+# Format
+npm run format
 ```
 
 Local dev with Docker (PostgreSQL 16):
@@ -85,10 +92,17 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 - BigInt IDs → `.toString()` for domain; Decimal amounts → `Number(row.amount)`
 - P2025 Prisma error = record not found (update/delete return `null`/`false`)
 - Repository methods that can return nothing use `| null` return type — never throw for not-found
+- `DATABASE_URL` may point to a connection pooler (e.g. PgBouncer); `DIRECT_URL` is the direct connection used by Prisma for migrations
 
 **Validation:** Zod schemas in `src/domain/validators/` applied via `validateBody(schema)` or `validateQuery(schema)` middleware — replaces `req.body`/`req.query` with the parsed, type-safe value.
 
 **Error handling:** Throw `HttpError` for HTTP-level errors. `AuthenticationError` maps to 401. Zod validation errors map to 400. Unhandled throws map to 500.
+
+**Tooling:**
+- ESLint v10 + typescript-eslint + eslint-plugin-import (flat config: `eslint.config.js`)
+- Prettier (`.prettierrc`): semi, double quotes, trailingComma es5, printWidth 100
+- Husky: pre-commit runs `lint` + `audit:check`; pre-push runs `test`
+- `npm install` requires `--legacy-peer-deps` due to eslint-plugin-import peer dep conflict with ESLint v10
 
 ## API Routes
 
@@ -103,21 +117,30 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 | POST | `/api/v1/calendar-events` | ✓ | Create event |
 | PUT | `/api/v1/calendar-events/:id` | ✓ | Update event |
 | DELETE | `/api/v1/calendar-events/:id` | ✓ | Delete event |
+| GET | `/api/v1/calendar-day` | ✓ | Month grid summary (query: `month` required, `weekStartsOn`) |
 
 ## Test Structure
 
-51 tests across 8 files. All pass with `npm run test`. No database required.
+~124 tests across 14 files. All pass with `npm run test`. No database required.
+
+Tests are organized by architectural layer under `tests/`:
 
 | File | Type | What it covers |
 |------|------|----------------|
-| `tests/health.test.ts` | Route | Health endpoint |
-| `tests/auth.test.ts` | Route | Login (both providers), schema validation, `/me` |
-| `tests/user.test.ts` | Route | User creation, validation rules |
-| `tests/calendarEvents.test.ts` | Route | Full CRUD, auth guard |
-| `tests/authService.test.ts` | Unit | Google flow, email/password flow, token verification |
-| `tests/userService.test.ts` | Unit | Password hashing, immutability, return value |
-| `tests/hmacSessionTokenService.test.ts` | Unit | Token create/verify, expiry, tampering |
-| `tests/hmacPasswordHasher.test.ts` | Unit | Hash consistency, verify correctness, wrong secret |
+| `tests/presentation/health.test.ts` | Route | Health endpoint |
+| `tests/presentation/auth.test.ts` | Route | Login (both providers), schema validation, `/me` |
+| `tests/presentation/user.test.ts` | Route | User creation, validation rules |
+| `tests/presentation/calendarEvents.test.ts` | Route | Full CRUD, auth guard |
+| `tests/presentation/calendarDay.test.ts` | Route | Month grid endpoint, auth guard |
+| `tests/application/services/authService.test.ts` | Unit | Google flow, email/password flow, token verification |
+| `tests/application/services/userService.test.ts` | Unit | Password hashing, immutability, return value |
+| `tests/application/services/calendarDayService.test.ts` | Unit | Month grid generation, event aggregation |
+| `tests/infrastructure/auth/hmacSessionTokenService.test.ts` | Unit | Token create/verify, expiry, tampering |
+| `tests/infrastructure/auth/hmacPasswordHasher.test.ts` | Unit | Hash consistency, verify correctness, wrong secret |
+| `tests/infrastructure/auth/googleTokenInfoIdentityProvider.test.ts` | Unit | Google token verification |
+| `tests/infrastructure/repositories/prismaCalendarEventRepository.test.ts` | Unit | Repository CRUD with mocked Prisma |
+| `tests/prismaUserRepository.test.ts` | Unit | User repository with mocked Prisma |
+| `tests/utils/dateUtils.test.ts` | Unit | Date utilities |
 
 ## Environment
 
