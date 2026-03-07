@@ -8,6 +8,12 @@ export type AuthenticatedUser = {
   emailVerified: boolean;
 };
 
+export type AuthProvider = "google" | "email_password";
+
+export type AuthForm =
+  | { type: "google"; tokenId: string }
+  | { type: "email_password"; username: string; password: string };
+
 export type AuthSession = {
   accessToken: string;
   expiresIn: number;

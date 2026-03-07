@@ -5,6 +5,7 @@ import { Socket } from "node:net";
 import type { AuthService } from "../src/application/services/authService.js";
 import type { CalendarDayService } from "../src/application/services/calendarDayService.js";
 import type { CalendarEventService } from "../src/application/services/calendarEventService.js";
+import type { UserService } from "../src/application/services/userService.js";
 import type { AuthenticatedUser } from "../src/domain/auth.js";
 
 type MockedService<T> = {
@@ -24,8 +25,12 @@ export const buildMockCalendarDayService = (): MockedService<CalendarDayService>
 });
 
 export const buildMockAuthService = (): MockedService<AuthService> => ({
-  authenticateWithGoogle: vi.fn<AuthService["authenticateWithGoogle"]>(),
+  authenticate: vi.fn<AuthService["authenticate"]>(),
   verifyAccessToken: vi.fn<AuthService["verifyAccessToken"]>()
+});
+
+export const buildMockUserService = (): MockedService<UserService> => ({
+  create: vi.fn<UserService["create"]>()
 });
 
 export const sampleAuthenticatedUser: AuthenticatedUser = {
@@ -40,13 +45,15 @@ export const buildAppDependencies = () => {
   const calendarEventService = buildMockCalendarEventService();
   const calendarDaysService = buildMockCalendarDayService();
   const authService = buildMockAuthService();
+  const userService = buildMockUserService();
 
   authService.verifyAccessToken.mockReturnValue(sampleAuthenticatedUser);
 
   return {
     calendarEventService,
     calendarDaysService,
-    authService
+    authService,
+    userService
   };
 };
 
