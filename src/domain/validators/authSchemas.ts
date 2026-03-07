@@ -3,7 +3,7 @@ import { z } from "zod";
 export const authFormSchema = z.discriminatedUnion("type", [
   z.object({
     type: z.literal("google"),
-    tokenId: z.string().min(1, "token is required"),
+    tokenId: z.string().min(1, "tokenId is required"),
   }),
   z.object({
     type: z.literal("email_password"),
