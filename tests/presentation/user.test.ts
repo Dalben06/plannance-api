@@ -22,7 +22,7 @@ describe("user routes", () => {
       body: { name: "New User", email: "new@example.com", password: "securepassword" },
     });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(201);
     expect(response.body.data).toEqual(sampleUserView);
     expect(deps.userService.create).toHaveBeenCalledWith({
       name: "New User",
@@ -105,7 +105,7 @@ describe("user routes", () => {
       },
     });
 
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(201);
     expect(deps.userService.create).toHaveBeenCalledWith(
       expect.objectContaining({ picture: null })
     );

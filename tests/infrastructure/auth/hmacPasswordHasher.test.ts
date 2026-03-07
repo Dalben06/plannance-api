@@ -5,9 +5,10 @@ const secret = "test-secret-key-for-unit-tests";
 
 describe("HmacPasswordHasher", () => {
   describe("hash", () => {
-    it("produces a consistent hash for the same input", () => {
+    it("produces a verifiable hash for the same input", () => {
       const hasher = new HmacPasswordHasher(secret);
-      expect(hasher.hash("password123")).toBe(hasher.hash("password123"));
+      const hashed = hasher.hash("password123");
+      expect(hasher.verify("password123", hashed)).toBe(true);
     });
 
     it("produces different hashes for different inputs", () => {
