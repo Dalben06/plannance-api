@@ -1,8 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { timingSafeEqual } from "node:crypto";
 import type { PrismaClient, User as PrismaUser } from "@prisma/client";
-import { AuthenticationError } from "../../domain/auth.js";
-import type { UserRepository } from "../../application/ports/userRepository.js";
+import type { UserRepository, UserWithPassword } from "../../application/ports/userRepository.js";
 import type { UserCreate, UserView } from "../../domain/user.js";
 
 const mapRow = (row: PrismaUser): UserView => ({
@@ -20,24 +18,10 @@ export class PrismaUserRepository implements UserRepository {
     return row ? mapRow(row) : null;
   }
 
-  async getByCredentials(email: string, hashedPassword: string): Promise<UserView> {
+  async findByEmail(email: string): Promise<UserWithPassword | null> {
     const row = await this.prisma.user.findFirst({ where: { email } });
-
-    if (!row) {
-      throw new AuthenticationError("Invalid credentials");
-    }
-
-    const storedBuffer = Buffer.from(row.password);
-    const incomingBuffer = Buffer.from(hashedPassword);
-    const passwordsMatch =
-      storedBuffer.length === incomingBuffer.length &&
-      timingSafeEqual(storedBuffer, incomingBuffer);
-
-    if (!passwordsMatch) {
-      throw new AuthenticationError("Invalid credentials");
-    }
-
-    return mapRow(row);
+    if (!row) return null;
+    return { ...mapRow(row), passwordHash: row.password };
   }
 
   async create(user: UserCreate): Promise<UserView> {

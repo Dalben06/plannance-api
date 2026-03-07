@@ -1,7 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { PrismaClient } from "@prisma/client";
 import { PrismaUserRepository } from "../src/infrastructure/repositories/prismaUserRepository.js";
-import { AuthenticationError } from "../src/domain/auth.js";
 
 const makePrismaUser = (overrides: Record<string, unknown> = {}) => ({
   id: BigInt(1),
@@ -64,42 +63,32 @@ describe("PrismaUserRepository", () => {
     });
   });
 
-  describe("getByCredentials", () => {
-    it("returns mapped UserView when credentials match", async () => {
+  describe("findByEmail", () => {
+    it("returns UserView with passwordHash when user is found", async () => {
       const prisma = buildMockPrisma();
       vi.mocked(prisma.user.findFirst).mockResolvedValue(
-        makePrismaUser({ password: "hashed-password" })
+        makePrismaUser({ password: "stored-bcrypt-hash" })
       );
       const repo = new PrismaUserRepository(prisma);
 
-      const result = await repo.getByCredentials("user@example.com", "hashed-password");
+      const result = await repo.findByEmail("user@example.com");
 
-      expect(result.id).toBe("google-user-id");
+      expect(result).not.toBeNull();
+      expect(result!.id).toBe("google-user-id");
+      expect(result!.passwordHash).toBe("stored-bcrypt-hash");
       expect(prisma.user.findFirst).toHaveBeenCalledWith({
         where: { email: "user@example.com" },
       });
     });
 
-    it("throws AuthenticationError when user does not exist", async () => {
+    it("returns null when user does not exist", async () => {
       const prisma = buildMockPrisma();
       vi.mocked(prisma.user.findFirst).mockResolvedValue(null);
       const repo = new PrismaUserRepository(prisma);
 
-      await expect(repo.getByCredentials("unknown@example.com", "any-hash")).rejects.toBeInstanceOf(
-        AuthenticationError
-      );
-    });
+      const result = await repo.findByEmail("unknown@example.com");
 
-    it("throws AuthenticationError when password does not match", async () => {
-      const prisma = buildMockPrisma();
-      vi.mocked(prisma.user.findFirst).mockResolvedValue(
-        makePrismaUser({ password: "correct-hash" })
-      );
-      const repo = new PrismaUserRepository(prisma);
-
-      await expect(repo.getByCredentials("user@example.com", "wrong-hash")).rejects.toBeInstanceOf(
-        AuthenticationError
-      );
+      expect(result).toBeNull();
     });
   });
 

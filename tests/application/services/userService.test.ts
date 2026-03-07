@@ -14,12 +14,12 @@ const sampleUserView: UserView = {
 const buildMocks = () => {
   const repository: UserRepository = {
     findById: vi.fn(),
-    getByCredentials: vi.fn(),
+    findByEmail: vi.fn(),
     create: vi.fn().mockResolvedValue(sampleUserView),
   };
   const passwordHasher: PasswordHasher = {
-    hash: vi.fn().mockReturnValue("hashed-pw"),
-    verify: vi.fn(),
+    hash: vi.fn().mockResolvedValue("hashed-pw"),
+    verify: vi.fn().mockResolvedValue(false),
   };
   return { repository, passwordHasher };
 };

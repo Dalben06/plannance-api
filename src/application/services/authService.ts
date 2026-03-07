@@ -66,14 +66,16 @@ export const createAuthService = (
       throw new AuthenticationError("Username and password are required");
     }
 
-    const hashedPassword = passwordHasher.hash(password);
-    const userView = await userRepository.getByCredentials(username, hashedPassword);
+    const found = await userRepository.findByEmail(username);
+    if (!found || !(await passwordHasher.verify(password, found.passwordHash))) {
+      throw new AuthenticationError("Invalid credentials");
+    }
 
     const user: AuthenticatedUser = {
-      id: userView.id,
-      email: userView.email,
-      name: userView.name,
-      picture: userView.picture,
+      id: found.id,
+      email: found.email,
+      name: found.name,
+      picture: found.picture,
       emailVerified: true,
     };
 

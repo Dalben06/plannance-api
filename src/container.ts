@@ -17,7 +17,7 @@ import { env } from "./config/env.js";
 import { getPrismaClient } from "./db/prisma.js";
 import { GoogleTokenInfoIdentityProvider } from "./infrastructure/auth/googleTokenInfoIdentityProvider.js";
 import { HmacSessionTokenService } from "./infrastructure/auth/hmacSessionTokenService.js";
-import { HmacPasswordHasher } from "./infrastructure/auth/hmacPasswordHasher.js";
+import { BcryptPasswordHasher } from "./infrastructure/auth/bcryptPasswordHasher.js";
 import { PrismaCalendarEventRepository } from "./infrastructure/repositories/prismaCalendarEventRepository.js";
 import { PrismaUserRepository } from "./infrastructure/repositories/prismaUserRepository.js";
 
@@ -76,7 +76,7 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
 
   const getPasswordHasher = (): PasswordHasher => {
     if (!passwordHasher) {
-      passwordHasher = new HmacPasswordHasher(env.AUTH_JWT_SECRET);
+      passwordHasher = new BcryptPasswordHasher();
     }
     return passwordHasher;
   };
