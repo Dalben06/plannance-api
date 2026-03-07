@@ -9,7 +9,7 @@ const tokenInfoSchema = z.object({
   email: z.string().email().optional(),
   email_verified: z.union([z.boolean(), z.string()]).optional(),
   name: z.string().optional(),
-  picture: z.string().url().optional()
+  picture: z.string().url().optional(),
 });
 
 const googleIssuers = new Set(["accounts.google.com", "https://accounts.google.com"]);
@@ -63,8 +63,7 @@ export class GoogleTokenInfoIdentityProvider implements GoogleIdentityProvider {
       email: payload.data.email ?? null,
       name: payload.data.name ?? null,
       picture: payload.data.picture ?? null,
-      emailVerified:
-        payload.data.email_verified === true || payload.data.email_verified === "true"
+      emailVerified: payload.data.email_verified === true || payload.data.email_verified === "true",
     };
   }
 }

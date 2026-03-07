@@ -8,11 +8,7 @@ import { validateBody } from "../middleware/validate.js";
 export const createAuthRouter = (authService: AuthService): Router => {
   const router = Router();
 
-  router.post(
-    "/auth/login",
-    validateBody(authFormSchema),
-    authenticate(authService)
-  );
+  router.post("/auth/login", validateBody(authFormSchema), authenticate(authService));
   router.get("/auth/me", requireAuth(authService), getCurrentUserHandler);
 
   return router;

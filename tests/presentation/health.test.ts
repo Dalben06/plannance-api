@@ -1,5 +1,5 @@
-import { createApp } from "../src/app.js";
-import { buildAppDependencies, sendRequest } from "./testUtils.js";
+import { createApp } from "../../src/app.js";
+import { buildAppDependencies, sendRequest } from "../testUtils.js";
 import { describe, expect, it } from "vitest";
 
 describe("health route", () => {

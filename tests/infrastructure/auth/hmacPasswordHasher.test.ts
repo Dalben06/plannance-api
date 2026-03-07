@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { HmacPasswordHasher } from "../src/infrastructure/auth/hmacPasswordHasher.js";
+import { HmacPasswordHasher } from "../../../src/infrastructure/auth/hmacPasswordHasher.js";
 
 const secret = "test-secret-key-for-unit-tests";
 

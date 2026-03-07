@@ -2,7 +2,7 @@ import type {
   CalendarEvent,
   CalendarEventCreate,
   CalendarEventFilters,
-  CalendarEventUpdate
+  CalendarEventUpdate,
 } from "../../domain/calendarEvent.js";
 
 export interface CalendarEventRepository {

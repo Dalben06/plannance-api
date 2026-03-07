@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app.js";
-import { buildAppDependencies, sampleAuthenticatedUser, sendRequest } from "./testUtils.js";
+import { createApp } from "../../src/app.js";
+import { buildAppDependencies, sampleAuthenticatedUser, sendRequest } from "../testUtils.js";
 
 describe("auth routes", () => {
   it("authenticates with Google", async () => {
@@ -9,21 +9,21 @@ describe("auth routes", () => {
       accessToken: "app-token",
       expiresIn: 3600,
       tokenType: "Bearer",
-      user: sampleAuthenticatedUser
+      user: sampleAuthenticatedUser,
     });
     const app = createApp(deps);
 
     const response = await sendRequest(app, {
       method: "POST",
       url: "/api/v1/auth/login",
-      body: { type: "google", tokenId: "google-id-token" }
+      body: { type: "google", tokenId: "google-id-token" },
     });
 
     expect(response.status).toBe(200);
     expect(response.body.data.accessToken).toBe("app-token");
     expect(deps.authService.authenticate).toHaveBeenCalledWith({
       type: "google",
-      tokenId: "google-id-token"
+      tokenId: "google-id-token",
     });
   });
 
@@ -33,21 +33,21 @@ describe("auth routes", () => {
       accessToken: "app-token",
       expiresIn: 3600,
       tokenType: "Bearer",
-      user: sampleAuthenticatedUser
+      user: sampleAuthenticatedUser,
     });
     const app = createApp(deps);
 
     const response = await sendRequest(app, {
       method: "POST",
       url: "/api/v1/auth/login",
-      body: { type: "email_password", username: "user@example.com", password: "secret" }
+      body: { type: "email_password", username: "user@example.com", password: "secret" },
     });
 
     expect(response.status).toBe(200);
     expect(deps.authService.authenticate).toHaveBeenCalledWith({
       type: "email_password",
       username: "user@example.com",
-      password: "secret"
+      password: "secret",
     });
   });
 
@@ -58,7 +58,7 @@ describe("auth routes", () => {
     const response = await sendRequest(app, {
       method: "POST",
       url: "/api/v1/auth/login",
-      body: { type: "unknown_provider", tokenId: "token" }
+      body: { type: "unknown_provider", tokenId: "token" },
     });
 
     expect(response.status).toBe(400);
@@ -71,7 +71,7 @@ describe("auth routes", () => {
     const response = await sendRequest(app, {
       method: "POST",
       url: "/api/v1/auth/login",
-      body: { type: "google" }
+      body: { type: "google" },
     });
 
     expect(response.status).toBe(400);
@@ -83,7 +83,7 @@ describe("auth routes", () => {
     const response = await sendRequest(app, {
       method: "GET",
       url: "/api/v1/auth/me",
-      headers: { Authorization: "Bearer test-token" }
+      headers: { Authorization: "Bearer test-token" },
     });
 
     expect(response.status).toBe(200);

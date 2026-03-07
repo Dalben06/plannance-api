@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { createApp } from "../src/app.js";
-import { buildAppDependencies, sendRequest } from "./testUtils.js";
-import type { UserView } from "../src/domain/user.js";
+import { createApp } from "../../src/app.js";
+import { buildAppDependencies, sendRequest } from "../testUtils.js";
+import type { UserView } from "../../src/domain/user.js";
 
 const sampleUserView: UserView = {
   id: "new-user-uuid",
@@ -78,7 +78,12 @@ describe("user routes", () => {
     const response = await sendRequest(app, {
       method: "POST",
       url: "/api/v1/users",
-      body: { name: "New User", email: "new@example.com", password: "securepassword", picture: "not-a-url" },
+      body: {
+        name: "New User",
+        email: "new@example.com",
+        password: "securepassword",
+        picture: "not-a-url",
+      },
     });
 
     expect(response.status).toBe(400);
@@ -92,10 +97,17 @@ describe("user routes", () => {
     const response = await sendRequest(app, {
       method: "POST",
       url: "/api/v1/users",
-      body: { name: "New User", email: "new@example.com", password: "securepassword", picture: null },
+      body: {
+        name: "New User",
+        email: "new@example.com",
+        password: "securepassword",
+        picture: null,
+      },
     });
 
     expect(response.status).toBe(201);
-    expect(deps.userService.create).toHaveBeenCalledWith(expect.objectContaining({ picture: null }));
+    expect(deps.userService.create).toHaveBeenCalledWith(
+      expect.objectContaining({ picture: null })
+    );
   });
 });

@@ -1,14 +1,11 @@
 import { z } from "zod";
 import { isParsableDate } from "../../utils/date.js";
 
-const dateString = z
-  .string()
-  .refine(isParsableDate, "Date must be ISO 8601 or YYYY-MM-DD");
+const dateString = z.string().refine(isParsableDate, "Date must be ISO 8601 or YYYY-MM-DD");
 
 const eventType = z.enum(["debit", "credit"]);
 const monthString = z.string().regex(/^\d{4}-\d{2}$/, "month must be YYYY-MM");
-const weekStartsOn = z
-  .coerce
+const weekStartsOn = z.coerce
   .number()
   .int()
   .refine((value) => value === 0 || value === 1, "weekStartsOn must be 0 or 1");
@@ -19,7 +16,7 @@ export const calendarEventCreateSchema = z.object({
   end: dateString.optional().nullable(),
   amount: z.number().finite(),
   type: eventType,
-  color: z.string().max(32).optional().nullable()
+  color: z.string().max(32).optional().nullable(),
 });
 
 export const calendarEventUpdateSchema = z
@@ -29,18 +26,18 @@ export const calendarEventUpdateSchema = z
     end: dateString.optional().nullable(),
     amount: z.number().finite().optional(),
     type: eventType.optional(),
-    color: z.string().max(32).optional().nullable()
+    color: z.string().max(32).optional().nullable(),
   })
   .refine((value) => Object.keys(value).length > 0, {
-    message: "At least one field is required"
+    message: "At least one field is required",
   });
 
 export const calendarEventQuerySchema = z.object({
   month: monthString.optional(),
-  weekStartsOn: weekStartsOn.default(0)
+  weekStartsOn: weekStartsOn.default(0),
 });
 
 export const calendarDayQuerySchema = z.object({
   month: monthString,
-  weekStartsOn: weekStartsOn.default(0)
+  weekStartsOn: weekStartsOn.default(0),
 });

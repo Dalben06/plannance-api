@@ -6,11 +6,11 @@ import type { UserRepository } from "./application/ports/userRepository.js";
 import { createAuthService, type AuthService } from "./application/services/authService.js";
 import {
   createCalendarEventService,
-  type CalendarEventService
+  type CalendarEventService,
 } from "./application/services/calendarEventService.js";
 import {
   createCalendarDayService,
-  type CalendarDayService
+  type CalendarDayService,
 } from "./application/services/calendarDayService.js";
 import { createUserService, type UserService } from "./application/services/userService.js";
 import { env } from "./config/env.js";
@@ -36,9 +36,7 @@ export type AppContainerOverrides = Partial<AppContainer> & {
   userRepository?: UserRepository;
 };
 
-export const createContainer = (
-  overrides: AppContainerOverrides = {}
-): AppContainer => {
+export const createContainer = (overrides: AppContainerOverrides = {}): AppContainer => {
   let calendarEventRepository = overrides.calendarEventRepository;
   let userRepository = overrides.userRepository;
   let googleIdentityProvider = overrides.googleIdentityProvider;
@@ -84,12 +82,10 @@ export const createContainer = (
   };
 
   const calendarEventService =
-    overrides.calendarEventService ??
-    createCalendarEventService(getCalendarEventRepository());
+    overrides.calendarEventService ?? createCalendarEventService(getCalendarEventRepository());
 
   const calendarDaysService =
-    overrides.calendarDaysService ??
-    createCalendarDayService(getCalendarEventRepository());
+    overrides.calendarDaysService ?? createCalendarDayService(getCalendarEventRepository());
 
   const authService =
     overrides.authService ??
@@ -101,13 +97,12 @@ export const createContainer = (
     );
 
   const userService =
-    overrides.userService ??
-    createUserService(getUserRepository(), getPasswordHasher());
+    overrides.userService ?? createUserService(getUserRepository(), getPasswordHasher());
 
   return {
     calendarEventService,
     calendarDaysService,
     authService,
-    userService
+    userService,
   };
 };

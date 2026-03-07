@@ -2,7 +2,7 @@ import type {
   CalendarEvent,
   CalendarEventCreate,
   CalendarEventFilters,
-  CalendarEventUpdate
+  CalendarEventUpdate,
 } from "../../domain/calendarEvent.js";
 import type { CalendarEventRepository } from "../ports/calendarEventRepository.js";
 
@@ -21,5 +21,5 @@ export const createCalendarEventService = (
   getEventById: (id) => repository.getById(id),
   createEvent: (input) => repository.create(input),
   updateEvent: (id, input) => repository.update(id, input),
-  deleteEvent: (id) => repository.delete(id)
+  deleteEvent: (id) => repository.delete(id),
 });

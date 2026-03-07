@@ -11,7 +11,7 @@ const envSchema = z.object({
   DIRECT_URL: z.string().optional(),
   GOOGLE_CLIENT_ID: z.string().optional(),
   AUTH_JWT_SECRET: z.string().optional(),
-  AUTH_TOKEN_TTL_SECONDS: z.coerce.number().default(3600)
+  AUTH_TOKEN_TTL_SECONDS: z.coerce.number().default(3600),
 });
 
 const parsed = envSchema.safeParse(process.env);

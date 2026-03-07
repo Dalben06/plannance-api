@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { HmacSessionTokenService } from "../src/infrastructure/auth/hmacSessionTokenService.js";
-import { AuthenticationError } from "../src/domain/auth.js";
-import type { AuthenticatedUser } from "../src/domain/auth.js";
+import { HmacSessionTokenService } from "../../../src/infrastructure/auth/hmacSessionTokenService.js";
+import { AuthenticationError } from "../../../src/domain/auth.js";
+import type { AuthenticatedUser } from "../../../src/domain/auth.js";
 
 const secret = "test-secret-key-for-unit-tests";
 
@@ -51,7 +51,9 @@ describe("HmacSessionTokenService", () => {
       const service = new HmacSessionTokenService(secret);
       const { token } = service.create(sampleUser);
       const [header, payload] = token.split(".");
-      expect(() => service.verify(`${header}.${payload}.tampered_signature`)).toThrow(AuthenticationError);
+      expect(() => service.verify(`${header}.${payload}.tampered_signature`)).toThrow(
+        AuthenticationError
+      );
     });
 
     it("throws AuthenticationError for a token signed with a different secret", () => {
@@ -71,8 +73,12 @@ describe("HmacSessionTokenService", () => {
       const service = new HmacSessionTokenService(secret, 3600);
       const { token } = service.create(sampleUser);
       const [header, , signature] = token.split(".");
-      const fakePaylod = Buffer.from(JSON.stringify({ sub: "hacker", exp: 9999999999, iat: 0 })).toString("base64url");
-      expect(() => service.verify(`${header}.${fakePaylod}.${signature}`)).toThrow(AuthenticationError);
+      const fakePaylod = Buffer.from(
+        JSON.stringify({ sub: "hacker", exp: 9999999999, iat: 0 })
+      ).toString("base64url");
+      expect(() => service.verify(`${header}.${fakePaylod}.${signature}`)).toThrow(
+        AuthenticationError
+      );
     });
   });
 });
