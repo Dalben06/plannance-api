@@ -7,6 +7,7 @@ import { createHealthRouter } from "./presentation/routes/healthRoutes.js";
 import { errorHandler } from "./presentation/middleware/errorHandler.js";
 import { createCalendarDaysRouter } from "./presentation/routes/calendarDayRoutes.js";
 import { createAuthRouter } from "./presentation/routes/authRoutes.js";
+import { createUserRouter } from "./presentation/routes/userRoutes.js";
 
 export type AppDependencies = AppContainerOverrides;
 
@@ -19,6 +20,7 @@ export const createApp = (deps: AppDependencies = {}) => {
   const container = createContainer(deps);
 
   app.use("/api/v1", createHealthRouter());
+  app.use("/api/v1", createUserRouter(container.userService));
   app.use("/api/v1", createAuthRouter(container.authService));
   app.use("/api/v1", createCalendarEventsRouter(container.calendarEventService, container.authService));
   app.use("/api/v1", createCalendarDaysRouter(container.calendarDaysService, container.authService));

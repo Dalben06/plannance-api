@@ -5,7 +5,7 @@ import {
 } from "../../domain/validators/calendarEventSchemas.js";
 import { validateQuery } from "../middleware/validate.js";
 import { CalendarDayService } from "../../application/services/calendarDayService.js";
-import { listCalendarDayHandler } from "../handlers/calendarDaysHanlders.js";
+import { listCalendarDayHandler } from "../handlers/calendarDaysHandlers.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 
 export const createCalendarDaysRouter = (

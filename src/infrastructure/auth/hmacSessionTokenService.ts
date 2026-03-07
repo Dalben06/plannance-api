@@ -16,14 +16,13 @@ const sessionTokenPayloadSchema = z.object({
   sub: z.string().min(1),
   email: z.string().email().nullable(),
   name: z.string().nullable(),
-  picture: z.string().url().nullable(),
+  picture: z.string().nullable(),
   emailVerified: z.boolean(),
   iat: z.number().int().nonnegative(),
   exp: z.number().int().positive()
 });
 
 const encodeBase64Url = (value: string): string => Buffer.from(value).toString("base64url");
-
 const decodeBase64Url = (value: string): string => Buffer.from(value, "base64url").toString("utf8");
 
 export class HmacSessionTokenService implements SessionTokenService {
@@ -43,7 +42,6 @@ export class HmacSessionTokenService implements SessionTokenService {
       iat: issuedAt,
       exp: issuedAt + this.ttlSeconds
     };
-
     return {
       token: this.sign(payload),
       expiresIn: this.ttlSeconds
@@ -58,13 +56,10 @@ export class HmacSessionTokenService implements SessionTokenService {
     const signature = parts[2];
 
     if (parts.length !== 3 || !encodedHeader || !encodedPayload || !signature) {
-      throw new AuthenticationError("Malformed access token");
+      throw new AuthenticationError("Invalid token format: expected 3 parts separated by dots");
     }
 
-    const expectedSignature = this.createSignature(
-      `${encodedHeader}.${encodedPayload}`,
-      secret
-    );
+    const expectedSignature = this.createSignature(`${encodedHeader}.${encodedPayload}`, secret);
     const signatureBuffer = Buffer.from(signature);
     const expectedBuffer = Buffer.from(expectedSignature);
 
@@ -76,11 +71,10 @@ export class HmacSessionTokenService implements SessionTokenService {
     }
 
     let header: Partial<typeof jwtHeader>;
-
     try {
       header = JSON.parse(decodeBase64Url(encodedHeader)) as Partial<typeof jwtHeader>;
     } catch {
-      throw new AuthenticationError("Malformed access token");
+      throw new AuthenticationError("Invalid token header: unable to decode or parse JSON");
     }
 
     if (header.alg !== jwtHeader.alg || header.typ !== jwtHeader.typ) {
@@ -88,31 +82,27 @@ export class HmacSessionTokenService implements SessionTokenService {
     }
 
     let rawPayload: unknown;
-
     try {
       rawPayload = JSON.parse(decodeBase64Url(encodedPayload));
     } catch {
-      throw new AuthenticationError("Malformed access token");
+      throw new AuthenticationError("Invalid token payload: unable to decode or parse JSON");
     }
 
-    const payload = sessionTokenPayloadSchema.safeParse(rawPayload);
-
-    if (!payload.success) {
+    const parsed = sessionTokenPayloadSchema.safeParse(rawPayload);
+    if (!parsed.success) {
       throw new AuthenticationError("Malformed access token");
     }
-
-    if (payload.data.exp <= Math.floor(Date.now() / 1000)) {
+    if (parsed.data.exp <= Math.floor(Date.now() / 1000)) {
       throw new AuthenticationError("Access token has expired");
     }
 
-    return payload.data;
+    return parsed.data;
   }
 
   private sign(payload: SessionTokenPayload): string {
     const secret = this.getSecret();
     const encodedHeader = encodeBase64Url(JSON.stringify(jwtHeader));
     const encodedPayload = encodeBase64Url(JSON.stringify(payload));
-
     return [
       encodedHeader,
       encodedPayload,
@@ -128,7 +118,6 @@ export class HmacSessionTokenService implements SessionTokenService {
     if (!this.secret) {
       throw new Error("AUTH_JWT_SECRET is not configured");
     }
-
     return this.secret;
   }
 }
