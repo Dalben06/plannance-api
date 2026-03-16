@@ -6,10 +6,8 @@ export type CalendarEvent = {
   userId: string;
   title: string;
   start: string; // ISO datetime
-  end: string | null;
   amount: number;
   type: CalendarEventType;
-  color: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -18,10 +16,8 @@ export type CalendarEventCreate = {
   userId: string;
   title: string;
   start: string;
-  end?: string | null;
   amount: number;
   type: CalendarEventType;
-  color?: string | null;
 };
 
 export type CalendarEventCreateInput = Omit<CalendarEventCreate, "userId">;

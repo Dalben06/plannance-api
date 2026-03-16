@@ -27,7 +27,7 @@ Copy `.env.example` and adjust as needed.
 ```
 NODE_ENV=development
 PORT=3000
-CORS_ORIGIN=http://localhost:5173
+CORS_ORIGIN=http://localhost:5174
 DATABASE_URL="postgres://user:pass@host-pooler:6543/db?pgbouncer=true"
 DIRECT_URL="postgres://user:pass@host:5432/db"
 GOOGLE_CLIENT_ID=

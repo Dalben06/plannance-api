@@ -30,10 +30,8 @@ model CalendarEvent {
   userId    String    @map("user_id") @db.VarChar(64)
   title     String    @db.VarChar(255)
   startAt   DateTime  @map("start_at") @db.Timestamptz()
-  endAt     DateTime? @map("end_at") @db.Timestamptz()
   amount    Decimal   @db.Decimal(12, 2)
   type      EventType
-  color     String?   @db.VarChar(32)
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
   updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
 

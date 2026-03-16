@@ -13,10 +13,8 @@ const mapRow = (row: PrismaCalendarEvent): CalendarEvent => ({
   userId: row.userId,
   title: row.title,
   start: toIsoString(row.startAt) ?? row.startAt.toISOString(),
-  end: toIsoString(row.endAt),
   amount: Number(row.amount),
   type: row.type,
-  color: row.color ?? null,
   createdAt: toIsoString(row.createdAt) ?? row.createdAt.toISOString(),
   updatedAt: toIsoString(row.updatedAt) ?? row.updatedAt.toISOString(),
 });
@@ -59,10 +57,8 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
         userId: input.userId,
         title: input.title,
         startAt: new Date(input.start),
-        endAt: input.end ? new Date(input.end) : null,
         amount: input.amount,
         type: input.type,
-        color: input.color ?? null,
       },
     });
 
@@ -74,10 +70,8 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
 
     if (input.title !== undefined) data.title = input.title;
     if (input.start !== undefined) data.startAt = new Date(input.start);
-    if (input.end !== undefined) data.endAt = input.end ? new Date(input.end) : null;
     if (input.amount !== undefined) data.amount = input.amount;
     if (input.type !== undefined) data.type = input.type;
-    if (input.color !== undefined) data.color = input.color ?? null;
 
     if (Object.keys(data).length === 0) {
       return this.getById(id);

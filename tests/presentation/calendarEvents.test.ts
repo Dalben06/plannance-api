@@ -7,10 +7,8 @@ const sampleEvent = {
   userId: "user-123",
   title: "Payday",
   start: "2026-01-05T00:00:00.000Z",
-  end: null,
   amount: 1500,
   type: "credit" as const,
-  color: "#00C853",
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
@@ -112,10 +110,8 @@ describe("calendar events routes", () => {
         userId: "spoofed-user",
         title: sampleEvent.title,
         start: sampleEvent.start,
-        end: sampleEvent.end,
         amount: sampleEvent.amount,
         type: sampleEvent.type,
-        color: sampleEvent.color,
       },
     });
 
@@ -125,10 +121,8 @@ describe("calendar events routes", () => {
       userId: "user-123",
       title: sampleEvent.title,
       start: sampleEvent.start,
-      end: sampleEvent.end,
       amount: sampleEvent.amount,
       type: sampleEvent.type,
-      color: sampleEvent.color,
     });
   });
 

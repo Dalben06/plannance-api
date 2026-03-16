@@ -13,20 +13,16 @@ const weekStartsOn = z.coerce
 export const calendarEventCreateSchema = z.object({
   title: z.string().min(1).max(255),
   start: dateString,
-  end: dateString.optional().nullable(),
   amount: z.number().finite(),
   type: eventType,
-  color: z.string().max(32).optional().nullable(),
 });
 
 export const calendarEventUpdateSchema = z
   .object({
     title: z.string().min(1).max(255).optional(),
     start: dateString.optional(),
-    end: dateString.optional().nullable(),
     amount: z.number().finite().optional(),
     type: eventType.optional(),
-    color: z.string().max(32).optional().nullable(),
   })
   .refine((value) => Object.keys(value).length > 0, {
     message: "At least one field is required",

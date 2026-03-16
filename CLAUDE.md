@@ -148,3 +148,35 @@ Tests are organized by architectural layer under `tests/`:
 - TypeScript strict mode + `noUncheckedIndexedAccess` — array/map access returns `T | undefined`
 - Module resolution: NodeNext (use `.js` extensions in imports even for `.ts` source files)
 - API base path: `/api/v1`
+
+
+## Quality Gate
+
+After every file edit or write, always run the project quality checks automatically through hooks.
+
+Required checks:
+1. Format the codebase
+2. Run lint
+3. Run TypeScript validation with no emit
+
+Expected commands:
+- `npm run format`
+- `npm run lint`
+- `npx tsc --noEmit`
+
+If any check fails, inspect the output, fix the problem, and rerun the checks until they pass.
+
+## Sensitive Data Policy
+
+Never read, search, inspect, summarize, or expose secrets from sensitive files.
+
+Sensitive files include, but are not limited to:
+- `.env`
+- `.env.*`
+- `secrets/`
+- `credentials/`
+- private keys such as `id_rsa`, `id_ed25519`, `*.pem`
+- service account files
+- any file containing tokens, API keys, passwords, or certificates
+
+If access to one of these files is required, stop and ask for explicit user confirmation first.
