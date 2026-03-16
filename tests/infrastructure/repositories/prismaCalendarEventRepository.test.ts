@@ -8,10 +8,8 @@ const makePrismaRow = (overrides: Record<string, unknown> = {}) => ({
   userId: "user-123",
   title: "Salary",
   startAt: new Date("2026-03-05T12:00:00.000Z"),
-  endAt: null,
   amount: 1500, // Number() converts fine
   type: "credit" as const,
-  color: "#00C853",
   createdAt: new Date("2026-01-01T00:00:00.000Z"),
   updatedAt: new Date("2026-01-01T00:00:00.000Z"),
   ...overrides,
@@ -90,19 +88,6 @@ describe("PrismaCalendarEventRepository", () => {
         })
       );
     });
-
-    it("maps endAt and color to null when absent", async () => {
-      const prisma = buildMockPrisma();
-      vi.mocked(prisma.calendarEvent.findMany).mockResolvedValue([
-        makePrismaRow({ endAt: null, color: null }),
-      ]);
-      const repo = new PrismaCalendarEventRepository(prisma);
-
-      const [event] = await repo.list({ weekStartsOn: 0 });
-
-      expect(event!.end).toBeNull();
-      expect(event!.color).toBeNull();
-    });
   });
 
   describe("getById", () => {
@@ -141,10 +126,8 @@ describe("PrismaCalendarEventRepository", () => {
         userId: "user-123",
         title: "Salary",
         start: "2026-03-05T12:00:00.000Z",
-        end: null,
         amount: 1500,
         type: "credit",
-        color: "#00C853",
       });
 
       expect(result.id).toBe("1");
@@ -157,24 +140,6 @@ describe("PrismaCalendarEventRepository", () => {
             type: "credit",
           }),
         })
-      );
-    });
-
-    it("sets endAt to null when end is not provided", async () => {
-      const prisma = buildMockPrisma();
-      vi.mocked(prisma.calendarEvent.create).mockResolvedValue(makePrismaRow());
-      const repo = new PrismaCalendarEventRepository(prisma);
-
-      await repo.create({
-        userId: "user-123",
-        title: "Salary",
-        start: "2026-03-05T12:00:00.000Z",
-        amount: 1500,
-        type: "credit",
-      });
-
-      expect(prisma.calendarEvent.create).toHaveBeenCalledWith(
-        expect.objectContaining({ data: expect.objectContaining({ endAt: null }) })
       );
     });
   });
