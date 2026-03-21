@@ -6,6 +6,7 @@ import type { AuthService } from "../src/application/services/authService.js";
 import type { CalendarDayService } from "../src/application/services/calendarDayService.js";
 import type { CalendarEventService } from "../src/application/services/calendarEventService.js";
 import type { UserService } from "../src/application/services/userService.js";
+import type { CsvService } from "../src/application/services/csvService.js";
 import type { AuthenticatedUser } from "../src/domain/auth.js";
 
 type MockedService<T> = {
@@ -34,6 +35,10 @@ export const buildMockUserService = (): MockedService<UserService> => ({
   create: vi.fn<UserService["create"]>(),
 });
 
+export const buildMockCsvService = (): MockedService<CsvService> => ({
+  mapColumns: vi.fn<CsvService["mapColumns"]>(),
+});
+
 export const sampleAuthenticatedUser: AuthenticatedUser = {
   id: "user-123",
   email: "user@example.com",
@@ -47,6 +52,7 @@ export const buildAppDependencies = () => {
   const calendarDaysService = buildMockCalendarDayService();
   const authService = buildMockAuthService();
   const userService = buildMockUserService();
+  const csvService = buildMockCsvService();
 
   authService.verifyAccessToken.mockReturnValue(sampleAuthenticatedUser);
 
@@ -55,6 +61,7 @@ export const buildAppDependencies = () => {
     calendarDaysService,
     authService,
     userService,
+    csvService,
   };
 };
 

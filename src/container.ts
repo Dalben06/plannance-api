@@ -13,6 +13,7 @@ import {
   type CalendarDayService,
 } from "./application/services/calendarDayService.js";
 import { createUserService, type UserService } from "./application/services/userService.js";
+import { createCsvService, type CsvService } from "./application/services/csvService.js";
 import { env } from "./config/env.js";
 import { getPrismaClient } from "./db/prisma.js";
 import { GoogleTokenInfoIdentityProvider } from "./infrastructure/auth/googleTokenInfoIdentityProvider.js";
@@ -26,6 +27,7 @@ export type AppContainer = {
   calendarDaysService: CalendarDayService;
   authService: AuthService;
   userService: UserService;
+  csvService: CsvService;
 };
 
 export type AppContainerOverrides = Partial<AppContainer> & {
@@ -99,10 +101,13 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
   const userService =
     overrides.userService ?? createUserService(getUserRepository(), getPasswordHasher());
 
+  const csvService = overrides.csvService ?? createCsvService();
+
   return {
     calendarEventService,
     calendarDaysService,
     authService,
     userService,
+    csvService,
   };
 };
