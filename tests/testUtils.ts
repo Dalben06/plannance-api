@@ -6,6 +6,8 @@ import type { AuthService } from "../src/application/services/authService.js";
 import type { CalendarDayService } from "../src/application/services/calendarDayService.js";
 import type { CalendarEventService } from "../src/application/services/calendarEventService.js";
 import type { UserService } from "../src/application/services/userService.js";
+import type { CsvService } from "../src/application/services/csvService.js";
+import type { CsvMappingService } from "../src/application/services/csvMappingService.js";
 import type { AuthenticatedUser } from "../src/domain/auth.js";
 
 type MockedService<T> = {
@@ -34,6 +36,15 @@ export const buildMockUserService = (): MockedService<UserService> => ({
   create: vi.fn<UserService["create"]>(),
 });
 
+export const buildMockCsvService = (): MockedService<CsvService> => ({
+  mapColumns: vi.fn<CsvService["mapColumns"]>(),
+});
+
+export const buildMockCsvMappingService = (): MockedService<CsvMappingService> => ({
+  listMappings: vi.fn<CsvMappingService["listMappings"]>(),
+  saveMapping: vi.fn<CsvMappingService["saveMapping"]>(),
+});
+
 export const sampleAuthenticatedUser: AuthenticatedUser = {
   id: "user-123",
   email: "user@example.com",
@@ -47,6 +58,8 @@ export const buildAppDependencies = () => {
   const calendarDaysService = buildMockCalendarDayService();
   const authService = buildMockAuthService();
   const userService = buildMockUserService();
+  const csvService = buildMockCsvService();
+  const csvMappingService = buildMockCsvMappingService();
 
   authService.verifyAccessToken.mockReturnValue(sampleAuthenticatedUser);
 
@@ -55,6 +68,8 @@ export const buildAppDependencies = () => {
     calendarDaysService,
     authService,
     userService,
+    csvService,
+    csvMappingService,
   };
 };
 
@@ -62,7 +77,7 @@ type RequestOptions = {
   method: string;
   url: string;
   headers?: Record<string, string>;
-  body?: unknown;
+  body?: Buffer | string | unknown;
 };
 
 type TestResponse = {
@@ -104,11 +119,16 @@ export const sendRequest = async (
     req.headers["host"] = "localhost";
   }
 
-  let payload: string | undefined;
+  let payload: Buffer | string | undefined;
   if (options.body !== undefined) {
-    payload = typeof options.body === "string" ? options.body : JSON.stringify(options.body);
+    payload =
+      Buffer.isBuffer(options.body) || typeof options.body === "string"
+        ? options.body
+        : JSON.stringify(options.body);
     if (!req.headers["content-type"]) {
-      req.headers["content-type"] = "application/json";
+      req.headers["content-type"] = Buffer.isBuffer(options.body)
+        ? "application/octet-stream"
+        : "application/json";
     }
     req.headers["content-length"] = Buffer.byteLength(payload).toString();
   }

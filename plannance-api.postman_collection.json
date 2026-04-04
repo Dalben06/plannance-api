@@ -1,0 +1,452 @@
+{
+  "info": {
+    "name": "Plannance API",
+    "_postman_id": "plannance-api-collection",
+    "description": "Complete API collection for the Plannance backend. Set the `baseUrl` variable before running. Login with email/password to auto-populate `accessToken`.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "API base URL"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "Bearer token — auto-set by the Login (email/password) request"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string",
+      "description": "Calendar event UUID — auto-set by Create Calendar Event request"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "health"]
+            },
+            "description": "Returns API status and current server time."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login (email/password)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('accessToken', json.data.accessToken);",
+                  "  console.log('accessToken saved:', json.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"email_password\",\n  \"username\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Authenticate with email and password. On success, automatically saves `accessToken` to collection variables."
+          },
+          "response": []
+        },
+        {
+          "name": "Login (Google)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"google\",\n  \"tokenId\": \"<your-google-id-token>\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Authenticate with a Google ID token. Replace `<your-google-id-token>` with a valid token from Google OAuth."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "auth", "me"]
+            },
+            "description": "Returns the authenticated user's profile. Requires `accessToken` to be set."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Users",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users"]
+            },
+            "description": "Register a new user with email and password. Returns 201 on success."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Calendar Events",
+      "item": [
+        {
+          "name": "List Calendar Events",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calendar-events?month=2026-03&weekStartsOn=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "calendar-events"],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-03",
+                  "description": "Filter by month (format: YYYY-MM). Optional."
+                },
+                {
+                  "key": "weekStartsOn",
+                  "value": "0",
+                  "description": "Week start day: 0 = Sunday, 1 = Monday. Optional, default 0."
+                }
+              ]
+            },
+            "description": "List all calendar events for the authenticated user. Optionally filter by month."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Calendar Event",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calendar-events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "calendar-events", "{{eventId}}"]
+            },
+            "description": "Get a single calendar event by ID. Uses `eventId` collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Calendar Event",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('eventId', json.data.id);",
+                  "  console.log('eventId saved:', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Salary\",\n  \"start\": \"2026-03-20\",\n  \"amount\": 5000,\n  \"type\": \"credit\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calendar-events",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "calendar-events"]
+            },
+            "description": "Create a new calendar event. `type` must be `credit` or `debit`. On success, automatically saves the new event's `id` to the `eventId` collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Calendar Event",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Salary\",\n  \"amount\": 5500\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calendar-events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "calendar-events", "{{eventId}}"]
+            },
+            "description": "Update an existing calendar event. All fields are optional — send only what you want to change."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Calendar Event",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calendar-events/{{eventId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "calendar-events", "{{eventId}}"]
+            },
+            "description": "Delete a calendar event by ID. Returns 204 No Content on success."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Calendar Day",
+      "item": [
+        {
+          "name": "Get Month Grid",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/calendar-day?month=2026-03&weekStartsOn=0",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "calendar-day"],
+              "query": [
+                {
+                  "key": "month",
+                  "value": "2026-03",
+                  "description": "Month to generate the grid for (format: YYYY-MM). Required."
+                },
+                {
+                  "key": "weekStartsOn",
+                  "value": "0",
+                  "description": "Week start day: 0 = Sunday, 1 = Monday. Optional, default 0."
+                }
+              ]
+            },
+            "description": "Returns a 42-day (6-week) month grid with events, income, and expense totals per day."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "CSV",
+      "item": [
+        {
+          "name": "Map CSV Columns",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "CSV file to upload (max 5MB). Select a .csv file from your filesystem."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/mapped",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "mapped"]
+            },
+            "description": "Upload a CSV file (multipart/form-data, field name: `file`, max 5MB). Returns detected column names and their inferred types (string | number | boolean | date)."
+          },
+          "response": []
+        },
+        {
+          "name": "List CSV Mappings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/mapping",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "mapping"]
+            },
+            "description": "List all saved CSV column mapping templates for the authenticated user. Returns an array of mapping templates."
+          },
+          "response": []
+        },
+        {
+          "name": "Save CSV Mapping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"bank-export\",\n  \"mappings\": [\n    { \"from\": \"Date\", \"to\": \"startAt\" },\n    { \"from\": \"Amount\", \"to\": \"amount\" },\n    { \"from\": \"Description\", \"to\": \"title\" },\n    { \"from\": \"Type\", \"to\": \"type\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/mapping",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "mapping"]
+            },
+            "description": "Save a new CSV column mapping template. Each mapping maps a CSV column name (`from`) to a CalendarEvent field (`to`). Valid `to` values: `title`, `amount`, `type`, `startAt`. Requires at least one mapping."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
