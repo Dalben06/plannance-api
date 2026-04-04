@@ -369,7 +369,12 @@
           "name": "Map CSV Columns",
           "request": {
             "method": "POST",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
             "body": {
               "mode": "formdata",
               "formdata": [
@@ -387,6 +392,57 @@
               "path": ["api", "v1", "csv", "mapped"]
             },
             "description": "Upload a CSV file (multipart/form-data, field name: `file`, max 5MB). Returns detected column names and their inferred types (string | number | boolean | date)."
+          },
+          "response": []
+        },
+        {
+          "name": "List CSV Mappings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/mapping",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "mapping"]
+            },
+            "description": "List all saved CSV column mapping templates for the authenticated user. Returns an array of mapping templates."
+          },
+          "response": []
+        },
+        {
+          "name": "Save CSV Mapping",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"bank-export\",\n  \"mappings\": [\n    { \"from\": \"Date\", \"to\": \"startAt\" },\n    { \"from\": \"Amount\", \"to\": \"amount\" },\n    { \"from\": \"Description\", \"to\": \"title\" },\n    { \"from\": \"Type\", \"to\": \"type\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/mapping",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "mapping"]
+            },
+            "description": "Save a new CSV column mapping template. Each mapping maps a CSV column name (`from`) to a CalendarEvent field (`to`). Valid `to` values: `title`, `amount`, `type`, `startAt`. Requires at least one mapping."
           },
           "response": []
         }

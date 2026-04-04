@@ -51,7 +51,7 @@ Clean Architecture with Ports & Adapters pattern. Layers (outer to inner):
 - **`src/presentation/`** — Express routes, handlers, middleware (`requireAuth`, `validateBody`/`validateQuery`, `errorHandler`)
 - **`src/application/`** — Business logic services + port interfaces (repository/provider abstractions)
 - **`src/domain/`** — TypeScript types and Zod schemas; no logic
-- **`src/infrastructure/`** — Concrete implementations: Prisma repositories, Google OAuth provider, HMAC token service, HMAC password hasher
+- **`src/infrastructure/`** — Concrete implementations: Prisma repositories, Google OAuth provider, HMAC token service, bcrypt password hasher
 - **`src/container.ts`** — Dependency injection wiring; all services are created here and injected into route handlers
 
 The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at the application service layer (not the HTTP/DB layer), so no database is needed for any tests.
@@ -76,14 +76,14 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 - `requireAuth` middleware calls `authService.verifyAccessToken` and attaches `req.authUser`
 - Two providers via a unified `POST /api/v1/auth/login` endpoint with a discriminated union body:
   - `{ type: "google", tokenId: "..." }` — verifies via Google `/tokeninfo`
-  - `{ type: "email_password", username: "...", password: "..." }` — verifies against DB with HMAC hash
+  - `{ type: "email_password", username: "...", password: "..." }` — verifies against DB with bcrypt
 - On first Google login the user is auto-created in the DB
 - Tokens are HMAC-SHA256 JWTs (hand-rolled, not a library)
 
 **Password hashing:**
 - Port: `PasswordHasher` (`src/application/ports/passwordHasher.ts`)
-- Implementation: `HmacPasswordHasher` — HMAC-SHA256 keyed with `AUTH_JWT_SECRET`
-- `verify(plain, hashed)` uses `timingSafeEqual` to prevent timing attacks
+- Implementation: `BcryptPasswordHasher` — bcrypt with 12 salt rounds
+- Session tokens (JWTs) remain HMAC-SHA256 via `HmacSessionTokenService` — separate from password hashing
 - Never stored or compared as plain strings
 
 **Database:** PostgreSQL via Prisma 6. Schema: `prisma/schema.prisma`. Two models: `User`, `CalendarEvent`.
@@ -118,10 +118,13 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 | PUT | `/api/v1/calendar-events/:id` | ✓ | Update event |
 | DELETE | `/api/v1/calendar-events/:id` | ✓ | Delete event |
 | GET | `/api/v1/calendar-day` | ✓ | Month grid summary (query: `month` required, `weekStartsOn`) |
+| POST | `/api/v1/csv/mapped` | ✓ | Upload CSV (multipart `file` field, ≤5 MB), returns inferred column names and types |
+| GET | `/api/v1/csv/mapping` | ✓ | List saved CSV mapping templates for the authenticated user |
+| POST | `/api/v1/csv/mapping` | ✓ | Save a CSV mapping template for the authenticated user |
 
 ## Test Structure
 
-~124 tests across 14 files. All pass with `npm run test`. No database required.
+~153 tests across 20 files. All pass with `npm run test`. No database required.
 
 Tests are organized by architectural layer under `tests/`:
 
@@ -136,11 +139,14 @@ Tests are organized by architectural layer under `tests/`:
 | `tests/application/services/userService.test.ts` | Unit | Password hashing, immutability, return value |
 | `tests/application/services/calendarDayService.test.ts` | Unit | Month grid generation, event aggregation |
 | `tests/infrastructure/auth/hmacSessionTokenService.test.ts` | Unit | Token create/verify, expiry, tampering |
-| `tests/infrastructure/auth/hmacPasswordHasher.test.ts` | Unit | Hash consistency, verify correctness, wrong secret |
+| `tests/infrastructure/auth/bcryptPasswordHasher.test.ts` | Unit | Hash consistency, verify correctness |
 | `tests/infrastructure/auth/googleTokenInfoIdentityProvider.test.ts` | Unit | Google token verification |
 | `tests/infrastructure/repositories/prismaCalendarEventRepository.test.ts` | Unit | Repository CRUD with mocked Prisma |
 | `tests/prismaUserRepository.test.ts` | Unit | User repository with mocked Prisma |
 | `tests/utils/dateUtils.test.ts` | Unit | Date utilities |
+| `tests/application/services/csvService.test.ts` | Unit | CSV column type inference |
+| `tests/presentation/csv.test.ts` | Route | CSV upload endpoint |
+| `tests/presentation/middleware/upload.test.ts` | Unit | Multer file upload middleware |
 
 ## Environment
 

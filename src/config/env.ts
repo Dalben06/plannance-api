@@ -12,6 +12,8 @@ const envSchema = z.object({
   GOOGLE_CLIENT_ID: z.string().optional(),
   AUTH_JWT_SECRET: z.string().optional(),
   AUTH_TOKEN_TTL_SECONDS: z.coerce.number().default(3600),
+  MONGODB_URI: z.string().optional(),
+  MONGODB_DB_NAME: z.string().default("plannance"),
 });
 
 const parsed = envSchema.safeParse(process.env);
