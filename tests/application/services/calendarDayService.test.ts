@@ -9,10 +9,8 @@ const sampleEvent: CalendarEvent = {
   title: "Salary",
   // Use noon UTC so local date is March 5 in any timezone (UTC-12 to UTC+12)
   start: "2026-03-05T12:00:00.000Z",
-  end: null,
   amount: 1000,
   type: "credit",
-  color: null,
   createdAt: "2026-01-01T00:00:00.000Z",
   updatedAt: "2026-01-01T00:00:00.000Z",
 };
@@ -21,6 +19,7 @@ const buildMockRepo = (): CalendarEventRepository => ({
   list: vi.fn(),
   getById: vi.fn(),
   create: vi.fn(),
+  createMany: vi.fn(),
   update: vi.fn(),
   delete: vi.fn(),
 });

@@ -27,5 +27,22 @@ export type CalendarEventUpdate = Partial<Omit<CalendarEventCreate, "userId">>;
 export type CalendarEventFilters = {
   userId?: string;
   month?: string; // YYYY-MM
-  weekStartsOn: CalendarWeekStartsOn;
+  dateRange?: { start: string; end: string }; // ISO date strings
+  weekStartsOn?: CalendarWeekStartsOn;
+};
+
+/**
+ * Utility to get weekStartsOn with a default value (e.g., 0 for Sunday).
+ */
+export function getWeekStartsOn(
+  filters: CalendarEventFilters,
+  defaultValue: CalendarWeekStartsOn = 0
+): CalendarWeekStartsOn {
+  return filters.weekStartsOn !== undefined ? filters.weekStartsOn : defaultValue;
+}
+
+export type CsvConfirmResult = {
+  inserted: number;
+  duplicates: number;
+  total: number;
 };

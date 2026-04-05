@@ -51,6 +51,7 @@ export const buildMockCsvImportService = (): MockedService<CsvImportService> => 
   listPendingImports: vi.fn<CsvImportService["listPendingImports"]>(),
   importCsv: vi.fn<CsvImportService["importCsv"]>(),
   updateImport: vi.fn<CsvImportService["updateImport"]>(),
+  confirmImport: vi.fn<CsvImportService["confirmImport"]>(),
 });
 
 export const sampleAuthenticatedUser: AuthenticatedUser = {

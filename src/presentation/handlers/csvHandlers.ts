@@ -105,3 +105,19 @@ export const importCsvHandler =
       next(error);
     }
   };
+
+export const confirmImportHandler =
+  (service: CsvImportService) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      const { id } = req.params;
+      if (!id) {
+        throw new HttpError("Import ID is required", 400);
+      }
+      const result = await service.confirmImport(userId, id);
+      res.json({ data: result });
+    } catch (error) {
+      next(error);
+    }
+  };

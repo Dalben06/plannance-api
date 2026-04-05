@@ -4,6 +4,7 @@ import type { CsvService } from "../../application/services/csvService.js";
 import type { CsvMappingService } from "../../application/services/csvMappingService.js";
 import type { CsvImportService } from "../../application/services/csvImportService.js";
 import {
+  confirmImportHandler,
   importCsvHandler,
   listCsvMappingsHandler,
   listPendingImportsHandler,
@@ -57,6 +58,8 @@ export const createCsvRouter = (
     handleMulterError,
     importCsvHandler(importService)
   );
+
+  router.post("/csv/confirm/:id", requireAuth(authService), confirmImportHandler(importService));
 
   return router;
 };

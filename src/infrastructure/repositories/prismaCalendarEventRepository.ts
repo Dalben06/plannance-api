@@ -29,7 +29,20 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
       where.userId = filters.userId;
     }
 
-    if (filters.month) {
+    if (filters.dateRange) {
+      const start = new Date(filters.dateRange.start);
+      const end = new Date(filters.dateRange.end);
+
+      where.startAt = /^\d{4}-\d{2}-\d{2}$/.test(filters.dateRange.end)
+        ? {
+            gte: start,
+            lt: new Date(end.getTime() + 24 * 60 * 60 * 1000),
+          }
+        : {
+            gte: start,
+            lte: end,
+          };
+    } else if (filters.month) {
       const range = parseMonthRangeUtc(filters.month);
       if (range) {
         where.startAt = { gte: range.start, lt: range.end };
@@ -63,6 +76,23 @@ export class PrismaCalendarEventRepository implements CalendarEventRepository {
     });
 
     return mapRow(row);
+  }
+
+  async createMany(inputs: CalendarEventCreate[]): Promise<CalendarEvent[]> {
+    const rows = await this.prisma.$transaction(
+      inputs.map((input) =>
+        this.prisma.calendarEvent.create({
+          data: {
+            userId: input.userId,
+            title: input.title,
+            startAt: new Date(input.start),
+            amount: input.amount,
+            type: input.type,
+          },
+        })
+      )
+    );
+    return rows.map(mapRow);
   }
 
   async update(id: string, input: CalendarEventUpdate): Promise<CalendarEvent | null> {

@@ -3,6 +3,7 @@ import request from "supertest";
 import { createApp } from "../../src/app.js";
 import { buildAppDependencies, sendRequest } from "../testUtils.js";
 import type { CsvImportResult } from "../../src/domain/csvImport.js";
+import type { CsvConfirmResult } from "../../src/domain/calendarEvent.js";
 import { HttpError } from "../../src/presentation/middleware/errorHandler.js";
 
 const AUTH_HEADER = "Bearer test-token";
@@ -323,6 +324,84 @@ describe("GET /api/v1/csv/import", () => {
     const res = await sendRequest(app, {
       method: "GET",
       url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Internal server error" });
+  });
+});
+
+describe("POST /api/v1/csv/confirm/:id", () => {
+  it("401: returns error when no auth token is provided", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "POST",
+      url: "/api/v1/csv/confirm/import-1",
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("400: returns error when import is not found", async () => {
+    const deps = buildAppDependencies();
+    deps.csvImportService.confirmImport.mockRejectedValue(new HttpError("Import not found", 400));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "POST",
+      url: "/api/v1/csv/confirm/non-existent",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Import not found" });
+  });
+
+  it("400: returns error when import has validation errors", async () => {
+    const deps = buildAppDependencies();
+    deps.csvImportService.confirmImport.mockRejectedValue(
+      new HttpError("Import still has validation errors", 400)
+    );
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "POST",
+      url: "/api/v1/csv/confirm/import-1",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Import still has validation errors" });
+  });
+
+  it("200: returns confirm result with counts", async () => {
+    const deps = buildAppDependencies();
+    const confirmResult: CsvConfirmResult = { inserted: 3, duplicates: 1, total: 4 };
+    deps.csvImportService.confirmImport.mockResolvedValue(confirmResult);
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "POST",
+      url: "/api/v1/csv/confirm/import-1",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: confirmResult });
+    expect(deps.csvImportService.confirmImport).toHaveBeenCalledWith("user-123", "import-1");
+  });
+
+  it("500: returns internal server error when unexpected error occurs", async () => {
+    const deps = buildAppDependencies();
+    deps.csvImportService.confirmImport.mockRejectedValue(new Error("Processing error"));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "POST",
+      url: "/api/v1/csv/confirm/import-1",
       headers: { Authorization: AUTH_HEADER },
     });
 

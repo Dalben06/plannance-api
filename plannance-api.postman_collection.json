@@ -532,6 +532,25 @@
             "description": "Update a pending temporary CSV import. Send the import `id` along with updated `data` (valid rows) and `errorsLines` (error rows). Only the owning user can update their import. Returns 200 with the updated import result."
           },
           "response": []
+        },
+        {
+          "name": "Confirm Import",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/confirm/<import-id>",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "confirm", "<import-id>"]
+            },
+            "description": "Confirm a pending temporary CSV import. Deduplicates imported rows against existing calendar events (matching title, date, and amount). Inserts non-duplicate rows into the calendar events table and deletes the temporary import from MongoDB. Returns `{ data: { inserted, duplicates, total } }`. Returns 400 if import not found, belongs to another user, or still has validation errors."
+          },
+          "response": []
         }
       ]
     }
