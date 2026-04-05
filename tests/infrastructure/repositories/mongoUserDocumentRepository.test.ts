@@ -18,13 +18,13 @@ const buildMockClient = () => {
   const db = vi.fn().mockReturnValue({ collection });
 
   const client = { db } as unknown as MongoClient;
-  return { client, db, collection, findOne, findOneAndUpdate };
+  return { getClient: () => Promise.resolve(client), db, collection, findOne, findOneAndUpdate };
 };
 
 describe("MongoUserDocumentRepository", () => {
   describe("findByUserId", () => {
     it("returns the document when found", async () => {
-      const { client, findOne } = buildMockClient();
+      const { getClient: client, findOne } = buildMockClient();
       const doc = makeDoc();
       findOne.mockResolvedValue(doc);
 
@@ -36,7 +36,7 @@ describe("MongoUserDocumentRepository", () => {
     });
 
     it("returns null when no document exists", async () => {
-      const { client, findOne } = buildMockClient();
+      const { getClient: client, findOne } = buildMockClient();
       findOne.mockResolvedValue(null);
 
       const repo = new MongoUserDocumentRepository(client, "plannance");
@@ -48,7 +48,7 @@ describe("MongoUserDocumentRepository", () => {
 
   describe("upsert", () => {
     it("calls findOneAndUpdate with correct $set and $setOnInsert and returns the document", async () => {
-      const { client, findOneAndUpdate } = buildMockClient();
+      const { getClient: client, findOneAndUpdate } = buildMockClient();
       const updatedDoc = makeDoc({ updatedAt: new Date("2026-03-24T10:00:00.000Z") });
       findOneAndUpdate.mockResolvedValue(updatedDoc);
 
@@ -70,7 +70,7 @@ describe("MongoUserDocumentRepository", () => {
     });
 
     it("merges provided data into $set", async () => {
-      const { client, findOneAndUpdate } = buildMockClient();
+      const { getClient: client, findOneAndUpdate } = buildMockClient();
       findOneAndUpdate.mockResolvedValue(makeDoc());
 
       const repo = new MongoUserDocumentRepository(client, "plannance");
@@ -86,7 +86,7 @@ describe("MongoUserDocumentRepository", () => {
     });
 
     it("uses the correct database and collection names", async () => {
-      const { client, db, collection, findOneAndUpdate } = buildMockClient();
+      const { getClient: client, db, collection, findOneAndUpdate } = buildMockClient();
       findOneAndUpdate.mockResolvedValue(makeDoc());
 
       const repo = new MongoUserDocumentRepository(client, "my_db");

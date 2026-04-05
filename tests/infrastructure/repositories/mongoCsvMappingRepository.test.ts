@@ -10,13 +10,14 @@ const buildMockClient = () => {
   const collection = vi.fn().mockReturnValue({ find, insertOne });
   const db = vi.fn().mockReturnValue({ collection });
 
-  return { client: { db } as unknown as MongoClient, db, collection, find, toArray, insertOne };
+  const client = { db } as unknown as MongoClient;
+  return { getClient: () => Promise.resolve(client), db, collection, find, toArray, insertOne };
 };
 
 describe("MongoCsvMappingRepository", () => {
   describe("findAllByUser", () => {
     it("returns mapped templates for the given user", async () => {
-      const { client, toArray } = buildMockClient();
+      const { getClient: client, toArray } = buildMockClient();
       const now = new Date("2026-01-01T00:00:00.000Z");
       toArray.mockResolvedValue([
         {
@@ -43,7 +44,7 @@ describe("MongoCsvMappingRepository", () => {
     });
 
     it("returns empty array when no mappings exist for user", async () => {
-      const { client, toArray } = buildMockClient();
+      const { getClient: client, toArray } = buildMockClient();
       toArray.mockResolvedValue([]);
 
       const repo = new MongoCsvMappingRepository(client, "plannance");
@@ -53,7 +54,7 @@ describe("MongoCsvMappingRepository", () => {
     });
 
     it("queries by userId", async () => {
-      const { client, find, toArray } = buildMockClient();
+      const { getClient: client, find, toArray } = buildMockClient();
       toArray.mockResolvedValue([]);
 
       const repo = new MongoCsvMappingRepository(client, "plannance");
@@ -65,7 +66,7 @@ describe("MongoCsvMappingRepository", () => {
 
   describe("save", () => {
     it("inserts a document and returns the mapped template", async () => {
-      const { client, insertOne } = buildMockClient();
+      const { getClient: client, insertOne } = buildMockClient();
       insertOne.mockResolvedValue({});
 
       const repo = new MongoCsvMappingRepository(client, "plannance");
@@ -84,7 +85,7 @@ describe("MongoCsvMappingRepository", () => {
     });
 
     it("uses the correct database and collection names", async () => {
-      const { client, db, collection, insertOne } = buildMockClient();
+      const { getClient: client, db, collection, insertOne } = buildMockClient();
       insertOne.mockResolvedValue({});
 
       const repo = new MongoCsvMappingRepository(client, "my_db");
@@ -95,7 +96,7 @@ describe("MongoCsvMappingRepository", () => {
     });
 
     it("returns ISO string dates", async () => {
-      const { client, insertOne } = buildMockClient();
+      const { getClient: client, insertOne } = buildMockClient();
       insertOne.mockResolvedValue({});
 
       const repo = new MongoCsvMappingRepository(client, "plannance");

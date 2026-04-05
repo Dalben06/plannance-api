@@ -11,8 +11,9 @@ const buildMockClient = () => {
   const collection = vi.fn().mockReturnValue({ createIndex, insertOne, find });
   const db = vi.fn().mockReturnValue({ collection });
 
+  const client = { db } as unknown as MongoClient;
   return {
-    client: { db } as unknown as MongoClient,
+    getClient: () => Promise.resolve(client),
     createIndex,
     insertOne,
     find,
@@ -22,8 +23,8 @@ const buildMockClient = () => {
 
 describe("MongoCsvImportRepository", () => {
   it("ensures the TTL index before saving and listing imports", async () => {
-    const { client, createIndex, insertOne, find } = buildMockClient();
-    const repo = new MongoCsvImportRepository(client, "plannance");
+    const { getClient, createIndex, insertOne, find } = buildMockClient();
+    const repo = new MongoCsvImportRepository(getClient, "plannance");
 
     await repo.save({
       id: "import-1",

@@ -29,21 +29,24 @@ const mapDoc = (doc: CsvMappingDocument): CsvMappingTemplate => ({
 
 export class MongoCsvMappingRepository implements CsvMappingRepository {
   constructor(
-    private readonly client: MongoClient,
+    private readonly getClient: () => Promise<MongoClient>,
     private readonly dbName: string
   ) {}
 
-  private get collection() {
-    return this.client.db(this.dbName).collection<CsvMappingDocument>(COLLECTION);
+  private async collection() {
+    const client = await this.getClient();
+    return client.db(this.dbName).collection<CsvMappingDocument>(COLLECTION);
   }
 
   async findById(id: string): Promise<CsvMappingTemplate | null> {
-    const doc = await this.collection.findOne({ _id: id });
+    const col = await this.collection();
+    const doc = await col.findOne({ _id: id });
     return doc ? mapDoc(doc) : null;
   }
 
   async findAllByUser(userId: string): Promise<CsvMappingTemplate[]> {
-    const docs = await this.collection.find({ userId }).toArray();
+    const col = await this.collection();
+    const docs = await col.find({ userId }).toArray();
     return docs.map(mapDoc);
   }
 
@@ -57,7 +60,8 @@ export class MongoCsvMappingRepository implements CsvMappingRepository {
       createdAt: now,
       updatedAt: now,
     };
-    await this.collection.insertOne(doc);
+    const col = await this.collection();
+    await col.insertOne(doc);
     return mapDoc(doc);
   }
 }

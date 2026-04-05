@@ -107,14 +107,14 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
 
   const getCsvMappingRepository = (): CsvMappingRepository => {
     if (!csvMappingRepository) {
-      csvMappingRepository = new MongoCsvMappingRepository(getMongoClient(), env.MONGODB_DB_NAME);
+      csvMappingRepository = new MongoCsvMappingRepository(getMongoClient, env.MONGODB_DB_NAME);
     }
     return csvMappingRepository;
   };
 
   const getCsvImportRepository = (): CsvImportRepository => {
     if (!csvImportRepository) {
-      csvImportRepository = new MongoCsvImportRepository(getMongoClient(), env.MONGODB_DB_NAME);
+      csvImportRepository = new MongoCsvImportRepository(getMongoClient, env.MONGODB_DB_NAME);
     }
     return csvImportRepository;
   };

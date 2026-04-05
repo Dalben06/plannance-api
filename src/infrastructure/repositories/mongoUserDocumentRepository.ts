@@ -6,21 +6,24 @@ const COLLECTION = "user_documents";
 
 export class MongoUserDocumentRepository implements UserDocumentRepository {
   constructor(
-    private readonly client: MongoClient,
+    private readonly getClient: () => Promise<MongoClient>,
     private readonly dbName: string
   ) {}
 
-  private get collection() {
-    return this.client.db(this.dbName).collection<UserDocument>(COLLECTION);
+  private async collection() {
+    const client = await this.getClient();
+    return client.db(this.dbName).collection<UserDocument>(COLLECTION);
   }
 
   async findByUserId(userId: string): Promise<UserDocument | null> {
-    return (await this.collection.findOne({ _id: userId })) ?? null;
+    const col = await this.collection();
+    return (await col.findOne({ _id: userId })) ?? null;
   }
 
   async upsert(userId: string, data: Partial<UserDocumentUpdate>): Promise<UserDocument> {
     const now = new Date();
-    const result = await this.collection.findOneAndUpdate(
+    const col = await this.collection();
+    const result = await col.findOneAndUpdate(
       { _id: userId },
       {
         $set: { ...data, updatedAt: now },
