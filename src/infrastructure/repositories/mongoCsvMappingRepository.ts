@@ -37,6 +37,11 @@ export class MongoCsvMappingRepository implements CsvMappingRepository {
     return this.client.db(this.dbName).collection<CsvMappingDocument>(COLLECTION);
   }
 
+  async findById(id: string): Promise<CsvMappingTemplate | null> {
+    const doc = await this.collection.findOne({ _id: id });
+    return doc ? mapDoc(doc) : null;
+  }
+
   async findAllByUser(userId: string): Promise<CsvMappingTemplate[]> {
     const docs = await this.collection.find({ userId }).toArray();
     return docs.map(mapDoc);

@@ -1,7 +1,7 @@
-import { parse } from "csv-parse";
 import type { CsvColumn, CsvColumnType, CsvMappingResult } from "../../domain/csv.js";
 import { HttpError } from "../../presentation/middleware/errorHandler.js";
 import { isParsableDate } from "../../utils/date.js";
+import { parseRawRows } from "../../utils/csvParser.js";
 
 const inferType = (values: string[]): CsvColumnType => {
   if (values.length === 0) return "string";
@@ -11,18 +11,6 @@ const inferType = (values: string[]): CsvColumnType => {
   if (values.every((v) => isParsableDate(v))) return "date";
   return "string";
 };
-
-const parseRawRows = (buffer: Buffer): Promise<string[][]> =>
-  new Promise((resolve, reject) => {
-    parse(
-      buffer,
-      { columns: false, skip_empty_lines: true, relax_column_count: true },
-      (err, records: string[][]) => {
-        if (err) reject(err);
-        else resolve(records);
-      }
-    );
-  });
 
 export type CsvService = {
   mapColumns(fileBuffer: Buffer): Promise<CsvMappingResult>;

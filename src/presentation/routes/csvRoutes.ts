@@ -2,8 +2,11 @@ import { Router } from "express";
 import type { AuthService } from "../../application/services/authService.js";
 import type { CsvService } from "../../application/services/csvService.js";
 import type { CsvMappingService } from "../../application/services/csvMappingService.js";
+import type { CsvImportService } from "../../application/services/csvImportService.js";
 import {
+  importCsvHandler,
   listCsvMappingsHandler,
+  listPendingImportsHandler,
   mapCsvColumnsHandler,
   saveCsvMappingHandler,
 } from "../handlers/csvHandlers.js";
@@ -15,6 +18,7 @@ import { saveCsvMappingSchema } from "../../domain/validators/csvSchemas.js";
 export const createCsvRouter = (
   service: CsvService,
   mappingService: CsvMappingService,
+  importService: CsvImportService,
   authService: AuthService
 ): Router => {
   const router = Router();
@@ -33,6 +37,16 @@ export const createCsvRouter = (
     requireAuth(authService),
     validateBody(saveCsvMappingSchema),
     saveCsvMappingHandler(mappingService)
+  );
+
+  router.get("/csv/import", requireAuth(authService), listPendingImportsHandler(importService));
+
+  router.post(
+    "/csv/import",
+    requireAuth(authService),
+    uploadSingleCsv,
+    handleMulterError,
+    importCsvHandler(importService)
   );
 
   return router;

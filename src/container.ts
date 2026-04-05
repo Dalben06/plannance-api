@@ -5,6 +5,7 @@ import type { PasswordHasher } from "./application/ports/passwordHasher.js";
 import type { UserRepository } from "./application/ports/userRepository.js";
 import type { UserDocumentRepository } from "./application/ports/userDocumentRepository.js";
 import type { CsvMappingRepository } from "./application/ports/csvMappingRepository.js";
+import type { CsvImportRepository } from "./application/ports/csvImportRepository.js";
 import { createAuthService, type AuthService } from "./application/services/authService.js";
 import {
   createCalendarEventService,
@@ -20,6 +21,10 @@ import {
   createCsvMappingService,
   type CsvMappingService,
 } from "./application/services/csvMappingService.js";
+import {
+  createCsvImportService,
+  type CsvImportService,
+} from "./application/services/csvImportService.js";
 import { env } from "./config/env.js";
 import { getPrismaClient } from "./db/prisma.js";
 import { getMongoClient } from "./db/mongodb.js";
@@ -29,6 +34,7 @@ import { BcryptPasswordHasher } from "./infrastructure/auth/bcryptPasswordHasher
 import { PrismaCalendarEventRepository } from "./infrastructure/repositories/prismaCalendarEventRepository.js";
 import { PrismaUserRepository } from "./infrastructure/repositories/prismaUserRepository.js";
 import { MongoCsvMappingRepository } from "./infrastructure/repositories/mongoCsvMappingRepository.js";
+import { MongoCsvImportRepository } from "./infrastructure/repositories/mongoCsvImportRepository.js";
 
 export type AppContainer = {
   calendarEventService: CalendarEventService;
@@ -37,6 +43,7 @@ export type AppContainer = {
   userService: UserService;
   csvService: CsvService;
   csvMappingService: CsvMappingService;
+  csvImportService: CsvImportService;
 };
 
 export type AppContainerOverrides = Partial<AppContainer> & {
@@ -47,6 +54,7 @@ export type AppContainerOverrides = Partial<AppContainer> & {
   userRepository?: UserRepository;
   userDocumentRepository?: UserDocumentRepository;
   csvMappingRepository?: CsvMappingRepository;
+  csvImportRepository?: CsvImportRepository;
 };
 
 export const createContainer = (overrides: AppContainerOverrides = {}): AppContainer => {
@@ -56,6 +64,7 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
   let sessionTokenService = overrides.sessionTokenService;
   let passwordHasher = overrides.passwordHasher;
   let csvMappingRepository = overrides.csvMappingRepository;
+  let csvImportRepository = overrides.csvImportRepository;
   let resolvedCsvMappingService = overrides.csvMappingService;
 
   const getCalendarEventRepository = (): CalendarEventRepository => {
@@ -103,6 +112,13 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
     return csvMappingRepository;
   };
 
+  const getCsvImportRepository = (): CsvImportRepository => {
+    if (!csvImportRepository) {
+      csvImportRepository = new MongoCsvImportRepository(getMongoClient(), env.MONGODB_DB_NAME);
+    }
+    return csvImportRepository;
+  };
+
   const calendarEventService =
     overrides.calendarEventService ?? createCalendarEventService(getCalendarEventRepository());
 
@@ -123,20 +139,22 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
 
   const csvService = overrides.csvService ?? createCsvService();
 
-  const csvMappingService: CsvMappingService = {
-    listMappings: (userId) => {
-      if (!resolvedCsvMappingService) {
-        resolvedCsvMappingService = createCsvMappingService(getCsvMappingRepository());
-      }
-      return resolvedCsvMappingService.listMappings(userId);
-    },
-    saveMapping: (userId, input) => {
-      if (!resolvedCsvMappingService) {
-        resolvedCsvMappingService = createCsvMappingService(getCsvMappingRepository());
-      }
-      return resolvedCsvMappingService.saveMapping(userId, input);
-    },
+  const getResolvedCsvMappingService = (): CsvMappingService => {
+    if (!resolvedCsvMappingService) {
+      resolvedCsvMappingService = createCsvMappingService(getCsvMappingRepository());
+    }
+    return resolvedCsvMappingService;
   };
+
+  const csvMappingService: CsvMappingService = {
+    findById: (id) => getResolvedCsvMappingService().findById(id),
+    listMappings: (userId) => getResolvedCsvMappingService().listMappings(userId),
+    saveMapping: (userId, input) => getResolvedCsvMappingService().saveMapping(userId, input),
+  };
+
+  const csvImportService =
+    overrides.csvImportService ??
+    createCsvImportService(csvMappingService, getCsvImportRepository());
 
   return {
     calendarEventService,
@@ -145,5 +163,6 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
     userService,
     csvService,
     csvMappingService,
+    csvImportService,
   };
 };

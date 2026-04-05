@@ -25,7 +25,12 @@ export const createApp = (deps: AppDependencies = {}) => {
   app.use("/api/v1", createAuthRouter(container.authService));
   app.use(
     "/api/v1",
-    createCsvRouter(container.csvService, container.csvMappingService, container.authService)
+    createCsvRouter(
+      container.csvService,
+      container.csvMappingService,
+      container.csvImportService,
+      container.authService
+    )
   );
   app.use(
     "/api/v1",

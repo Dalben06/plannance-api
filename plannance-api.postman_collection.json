@@ -75,7 +75,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"email_password\",\n  \"username\": \"user@example.com\",\n  \"password\": \"password123\"\n}",
+              "raw": "{\n  \"type\": \"email_password\",\n  \"username\": \"teste@teste.com\",\n  \"password\": \"123456\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -443,6 +443,61 @@
               "path": ["api", "v1", "csv", "mapping"]
             },
             "description": "Save a new CSV column mapping template. Each mapping maps a CSV column name (`from`) to a CalendarEvent field (`to`). Valid `to` values: `title`, `amount`, `type`, `startAt`. Requires at least one mapping."
+          },
+          "response": []
+        },
+        {
+          "name": "List Pending Imports",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "import"]
+            },
+            "description": "List all pending (temporary) CSV imports for the authenticated user. Imports expire after 3 hours. Returns 404 if no pending imports exist."
+          },
+          "response": []
+        },
+        {
+          "name": "Import CSV",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": "",
+                  "description": "CSV file to import (max 5MB). Select a .csv file from your filesystem."
+                },
+                {
+                  "key": "templateId",
+                  "value": "",
+                  "type": "text",
+                  "description": "ID of a saved CSV mapping template. Get IDs from the List CSV Mappings request."
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "import"]
+            },
+            "description": "Import a CSV file using a saved mapping template. Parses rows, maps columns to CalendarEvent fields via the template, validates each row, and stores the result temporarily in MongoDB (3h TTL). Returns `data` (valid rows) and `errorsLines` (rows with validation errors). Event type is derived from amount sign: >= 0 = debit, < 0 = credit."
           },
           "response": []
         }
