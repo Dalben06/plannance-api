@@ -500,6 +500,38 @@
             "description": "Import a CSV file using a saved mapping template. Parses rows, maps columns to CalendarEvent fields via the template, validates each row, and stores the result temporarily in MongoDB (3h TTL). Returns `data` (valid rows) and `errorsLines` (rows with validation errors). Event type is derived from amount sign: >= 0 = debit, < 0 = credit."
           },
           "response": []
+        },
+        {
+          "name": "Update Pending Import",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"<import-id>\",\n  \"data\": [\n    {\n      \"id\": \"row-1\",\n      \"title\": \"Salary\",\n      \"start\": \"2026-03-15\",\n      \"amount\": 5000,\n      \"type\": \"credit\"\n    }\n  ],\n  \"errorsLines\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/import",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "import"]
+            },
+            "description": "Update a pending temporary CSV import. Send the import `id` along with updated `data` (valid rows) and `errorsLines` (error rows). Only the owning user can update their import. Returns 200 with the updated import result."
+          },
+          "response": []
         }
       ]
     }

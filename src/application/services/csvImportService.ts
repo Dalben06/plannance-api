@@ -1,14 +1,23 @@
 import { randomUUID } from "node:crypto";
 import type { CsvMappingService } from "./csvMappingService.js";
 import type { CsvImportRepository } from "../ports/csvImportRepository.js";
-import type { CsvImportResult, CsvImportRow, CsvImportErrorRow } from "../../domain/csvImport.js";
-import { csvImportRowSchema } from "../../domain/validators/csvImportSchemas.js";
+import type {
+  CsvImportResult,
+  CsvImportRow,
+  CsvImportErrorRow,
+  CsvImportUpdate,
+} from "../../domain/csvImport.js";
+import {
+  csvImportRowSchema,
+  csvImportUpdateSchema,
+} from "../../domain/validators/csvImportSchemas.js";
 import { parseRawRows } from "../../utils/csvParser.js";
 import { HttpError } from "../../presentation/middleware/errorHandler.js";
 
 export type CsvImportService = {
   listPendingImports(userId: string): Promise<CsvImportResult[]>;
   importCsv(userId: string, fileBuffer: Buffer, templateId: string): Promise<CsvImportResult>;
+  updateImport(userId: string, input: CsvImportUpdate): Promise<CsvImportResult>;
 };
 
 export const createCsvImportService = (
@@ -97,5 +106,46 @@ export const createCsvImportService = (
     };
 
     return importRepo.save(importResult);
+  },
+
+  async updateImport(userId, input) {
+    const parsedInput = csvImportUpdateSchema.safeParse(input);
+    if (!parsedInput.success) {
+      throw new HttpError("Validation error", 400);
+    }
+
+    const existing = await importRepo.findById(parsedInput.data.id);
+    if (!existing || existing.userId !== userId) {
+      throw new HttpError("Import not found", 404);
+    }
+
+    const normalizedData = parsedInput.data.data.map((row) => {
+      const parsedRow = csvImportRowSchema.safeParse({
+        title: row.title,
+        startAt: row.start,
+        amount: String(row.amount),
+      });
+      if (!parsedRow.success) {
+        throw new HttpError("Validation error", 400);
+      }
+
+      const amount = parsedRow.data.amount;
+      const type: CsvImportRow["type"] = amount >= 0 ? "debit" : "credit";
+      return {
+        id: row.id,
+        title: parsedRow.data.title,
+        start: parsedRow.data.startAt,
+        amount,
+        type,
+      };
+    });
+
+    const updated: CsvImportResult = {
+      ...existing,
+      data: normalizedData,
+      errorsLines: parsedInput.data.errorsLines,
+    };
+
+    return importRepo.update(updated);
   },
 });

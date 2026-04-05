@@ -36,8 +36,12 @@ const buildMockMappingService = (): MockedService<CsvMappingService> => ({
 
 const buildMockImportRepo = (): MockedService<CsvImportRepository> => ({
   findAllByUser: vi.fn<CsvImportRepository["findAllByUser"]>(),
+  findById: vi.fn<CsvImportRepository["findById"]>(),
   save: vi
     .fn<CsvImportRepository["save"]>()
+    .mockImplementation((result: CsvImportResult) => Promise.resolve(result)),
+  update: vi
+    .fn<CsvImportRepository["update"]>()
     .mockImplementation((result: CsvImportResult) => Promise.resolve(result)),
 });
 
@@ -355,5 +359,157 @@ describe("CsvImportService.listPendingImports", () => {
     await expect(service.listPendingImports(USER_ID)).rejects.toThrow(
       new HttpError("No pending imports found", 404)
     );
+  });
+});
+
+describe("CsvImportService.updateImport", () => {
+  const makeExistingImport = (): CsvImportResult => ({
+    id: "import-1",
+    userId: USER_ID,
+    errorsLines: [
+      {
+        id: "err-1",
+        line: 1,
+        title: "",
+        start: "2026-03-15",
+        amount: 10,
+        type: "debit",
+        errors: ["Title is required"],
+      },
+    ],
+    data: [{ id: "row-1", title: "Salary", start: "2026-03-15", amount: 100, type: "debit" }],
+    createdAt: "2026-04-04T00:00:00.000Z",
+    expiresAt: "2026-04-04T03:00:00.000Z",
+  });
+
+  it("throws 404 when import is not found", async () => {
+    const mappingService = buildMockMappingService();
+    const importRepo = buildMockImportRepo();
+    importRepo.findById.mockResolvedValue(null);
+    const service = createCsvImportService(mappingService, importRepo);
+
+    await expect(
+      service.updateImport(USER_ID, { id: "non-existent", data: [], errorsLines: [] })
+    ).rejects.toThrow(new HttpError("Import not found", 404));
+  });
+
+  it("throws 404 when import belongs to a different user", async () => {
+    const mappingService = buildMockMappingService();
+    const importRepo = buildMockImportRepo();
+    importRepo.findById.mockResolvedValue(makeExistingImport());
+    const service = createCsvImportService(mappingService, importRepo);
+
+    await expect(
+      service.updateImport("other-user", { id: "import-1", data: [], errorsLines: [] })
+    ).rejects.toThrow(new HttpError("Import not found", 404));
+  });
+
+  it("throws 400 when updated data contains an invalid date", async () => {
+    const mappingService = buildMockMappingService();
+    const importRepo = buildMockImportRepo();
+    importRepo.findById.mockResolvedValue(makeExistingImport());
+    const service = createCsvImportService(mappingService, importRepo);
+
+    await expect(
+      service.updateImport(USER_ID, {
+        id: "import-1",
+        data: [
+          {
+            id: "row-1",
+            title: "Salary",
+            start: "not-a-date",
+            amount: 100,
+            type: "debit",
+          },
+        ],
+        errorsLines: [],
+      })
+    ).rejects.toThrow(new HttpError("Validation error", 400));
+
+    expect(importRepo.update).not.toHaveBeenCalled();
+  });
+
+  it("calls repo.update with merged result preserving metadata", async () => {
+    const mappingService = buildMockMappingService();
+    const importRepo = buildMockImportRepo();
+    const existing = makeExistingImport();
+    importRepo.findById.mockResolvedValue(existing);
+    const service = createCsvImportService(mappingService, importRepo);
+
+    const updatedData = [
+      { id: "row-1", title: "Salary", start: "2026-03-15", amount: 100, type: "debit" as const },
+      {
+        id: "row-2",
+        title: "Fixed Row",
+        start: "2026-03-15",
+        amount: 10,
+        type: "debit" as const,
+      },
+    ];
+
+    await service.updateImport(USER_ID, {
+      id: "import-1",
+      data: updatedData,
+      errorsLines: [],
+    });
+
+    expect(importRepo.update).toHaveBeenCalledOnce();
+    const saved = importRepo.update.mock.calls[0]![0] as CsvImportResult;
+    expect(saved.id).toBe(existing.id);
+    expect(saved.userId).toBe(existing.userId);
+    expect(saved.createdAt).toBe(existing.createdAt);
+    expect(saved.expiresAt).toBe(existing.expiresAt);
+    expect(saved.data).toEqual(updatedData);
+    expect(saved.errorsLines).toEqual([]);
+  });
+
+  it("normalizes row type from the amount sign before saving", async () => {
+    const mappingService = buildMockMappingService();
+    const importRepo = buildMockImportRepo();
+    importRepo.findById.mockResolvedValue(makeExistingImport());
+    const service = createCsvImportService(mappingService, importRepo);
+
+    await service.updateImport(USER_ID, {
+      id: "import-1",
+      data: [
+        {
+          id: "row-1",
+          title: "Salary",
+          start: "2026-03-15",
+          amount: -100,
+          type: "debit",
+        },
+      ],
+      errorsLines: [],
+    });
+
+    expect(importRepo.update).toHaveBeenCalledOnce();
+    const saved = importRepo.update.mock.calls[0]![0] as CsvImportResult;
+    expect(saved.data).toEqual([
+      {
+        id: "row-1",
+        title: "Salary",
+        start: "2026-03-15",
+        amount: -100,
+        type: "credit",
+      },
+    ]);
+  });
+
+  it("returns the updated result", async () => {
+    const mappingService = buildMockMappingService();
+    const importRepo = buildMockImportRepo();
+    importRepo.findById.mockResolvedValue(makeExistingImport());
+    const service = createCsvImportService(mappingService, importRepo);
+
+    const result = await service.updateImport(USER_ID, {
+      id: "import-1",
+      data: [{ id: "row-1", title: "Salary", start: "2026-03-15", amount: 100, type: "debit" }],
+      errorsLines: [],
+    });
+
+    expect(result.id).toBe("import-1");
+    expect(result.data).toHaveLength(1);
+    expect(result.errorsLines).toHaveLength(0);
   });
 });

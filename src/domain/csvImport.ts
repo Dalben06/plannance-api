@@ -26,3 +26,9 @@ export type CsvImportResult = {
   createdAt: string;
   expiresAt: string;
 };
+
+export type CsvImportUpdate = {
+  id: string;
+  data: CsvImportRow[];
+  errorsLines: CsvImportErrorRow[];
+};

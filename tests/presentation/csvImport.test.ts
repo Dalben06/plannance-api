@@ -119,6 +119,155 @@ describe("POST /api/v1/csv/import", () => {
   });
 });
 
+describe("PUT /api/v1/csv/import", () => {
+  const makeUpdateBody = () => ({
+    id: "import-1",
+    data: [
+      {
+        id: "row-1",
+        title: "Salary",
+        start: "2026-03-15",
+        amount: 100,
+        type: "debit",
+      },
+    ],
+    errorsLines: [],
+  });
+
+  it("401: returns error when no auth token is provided", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      body: makeUpdateBody(),
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("400: returns error when id is missing", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const body = makeUpdateBody();
+    const { id: _, ...bodyWithoutId } = body;
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+      body: bodyWithoutId,
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("400: returns error when data is missing", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const { data: _, ...bodyWithoutData } = makeUpdateBody();
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+      body: bodyWithoutData,
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("400: returns error when errorsLines is missing", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const { errorsLines: _, ...bodyWithoutErrors } = makeUpdateBody();
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+      body: bodyWithoutErrors,
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("400: returns error when updated data contains an invalid date", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const body = makeUpdateBody();
+    body.data[0]!.start = "not-a-date";
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+      body,
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("404: returns error when import is not found", async () => {
+    const deps = buildAppDependencies();
+    deps.csvImportService.updateImport.mockRejectedValue(new HttpError("Import not found", 404));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+      body: makeUpdateBody(),
+    });
+
+    expect(res.status).toBe(404);
+    expect(res.body).toEqual({ error: "Import not found" });
+  });
+
+  it("200: returns updated import result", async () => {
+    const deps = buildAppDependencies();
+    const importResult = makeImportResult();
+    deps.csvImportService.updateImport.mockResolvedValue(importResult);
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+      body: makeUpdateBody(),
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      id: importResult.id,
+      errorsLines: importResult.errorsLines,
+      data: importResult.data,
+      expiresAt: importResult.expiresAt,
+    });
+  });
+
+  it("500: returns internal server error when unexpected error occurs", async () => {
+    const deps = buildAppDependencies();
+    deps.csvImportService.updateImport.mockRejectedValue(new Error("DB failure"));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/import",
+      headers: { Authorization: AUTH_HEADER },
+      body: makeUpdateBody(),
+    });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Internal server error" });
+  });
+});
+
 describe("GET /api/v1/csv/import", () => {
   it("401: returns error when no auth token is provided", async () => {
     const deps = buildAppDependencies();

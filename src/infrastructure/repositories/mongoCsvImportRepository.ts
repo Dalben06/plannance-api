@@ -49,6 +49,13 @@ export class MongoCsvImportRepository implements CsvImportRepository {
     return docs.map(mapDoc);
   }
 
+  async findById(id: string): Promise<CsvImportResult | null> {
+    await this.ensureIndexes();
+    const col = await this.collection();
+    const doc = await col.findOne({ _id: id });
+    return doc ? mapDoc(doc) : null;
+  }
+
   async save(importResult: CsvImportResult): Promise<CsvImportResult> {
     await this.ensureIndexes();
     const doc: CsvImportDocument = {
@@ -61,6 +68,24 @@ export class MongoCsvImportRepository implements CsvImportRepository {
     };
     const col = await this.collection();
     await col.insertOne(doc);
+    return mapDoc(doc);
+  }
+
+  async update(importResult: CsvImportResult): Promise<CsvImportResult> {
+    await this.ensureIndexes();
+    const doc: CsvImportDocument = {
+      _id: importResult.id,
+      userId: importResult.userId,
+      errorsLines: importResult.errorsLines,
+      data: importResult.data,
+      createdAt: new Date(importResult.createdAt),
+      expiresAt: new Date(importResult.expiresAt),
+    };
+    const col = await this.collection();
+    const result = await col.replaceOne({ _id: doc._id }, doc);
+    if (result.matchedCount === 0) {
+      throw new Error(`CsvImport with id ${doc._id} not found for update.`);
+    }
     return mapDoc(doc);
   }
 }
