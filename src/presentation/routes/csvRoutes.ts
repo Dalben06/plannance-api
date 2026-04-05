@@ -9,11 +9,13 @@ import {
   listPendingImportsHandler,
   mapCsvColumnsHandler,
   saveCsvMappingHandler,
+  updateImportHandler,
 } from "../handlers/csvHandlers.js";
 import { handleMulterError, uploadSingleCsv } from "../middleware/upload.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { validateBody } from "../middleware/validate.js";
 import { saveCsvMappingSchema } from "../../domain/validators/csvSchemas.js";
+import { csvImportUpdateSchema } from "../../domain/validators/csvImportSchemas.js";
 
 export const createCsvRouter = (
   service: CsvService,
@@ -40,6 +42,13 @@ export const createCsvRouter = (
   );
 
   router.get("/csv/import", requireAuth(authService), listPendingImportsHandler(importService));
+
+  router.put(
+    "/csv/import",
+    requireAuth(authService),
+    validateBody(csvImportUpdateSchema),
+    updateImportHandler(importService)
+  );
 
   router.post(
     "/csv/import",

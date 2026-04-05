@@ -14,3 +14,29 @@ export const csvImportRowSchema = z.object({
   startAt: dateString,
   amount: amountString,
 });
+
+const calendarEventType = z.enum(["debit", "credit"]);
+
+const csvImportRowUpdateSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1, "Title is required").max(255),
+  start: dateString,
+  amount: z.number().finite(),
+  type: calendarEventType,
+});
+
+const csvImportErrorRowSchema = z.object({
+  id: z.string().min(1),
+  line: z.number(),
+  title: z.string(),
+  start: z.string(),
+  amount: z.union([z.number(), z.string()]),
+  type: calendarEventType.nullable(),
+  errors: z.array(z.string()),
+});
+
+export const csvImportUpdateSchema = z.object({
+  id: z.string().min(1, "id is required"),
+  data: z.array(csvImportRowUpdateSchema),
+  errorsLines: z.array(csvImportErrorRowSchema),
+});

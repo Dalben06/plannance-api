@@ -123,10 +123,11 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 | POST | `/api/v1/csv/mapping` | ✓ | Save a CSV mapping template for the authenticated user |
 | GET | `/api/v1/csv/import` | ✓ | List all pending temporary CSV imports for the authenticated user |
 | POST | `/api/v1/csv/import` | ✓ | Import CSV with mapping template (multipart `file` + `templateId`), returns temp import with valid/error rows |
+| PUT | `/api/v1/csv/import` | ✓ | Update a pending temporary CSV import (body: `id`, `data`, `errorsLines`) |
 
 ## Test Structure
 
-~181 tests across 22 files. All pass with `npm run test`. No database required.
+~196 tests across 23 files. All pass with `npm run test`. No database required.
 
 Tests are organized by architectural layer under `tests/`:
 
@@ -148,8 +149,8 @@ Tests are organized by architectural layer under `tests/`:
 | `tests/utils/dateUtils.test.ts` | Unit | Date utilities |
 | `tests/application/services/csvService.test.ts` | Unit | CSV column type inference |
 | `tests/presentation/csv.test.ts` | Route | CSV upload endpoint |
-| `tests/presentation/csvImport.test.ts` | Route | CSV import endpoint |
-| `tests/application/services/csvImportService.test.ts` | Unit | CSV import: mapping, validation, type derivation |
+| `tests/presentation/csvImport.test.ts` | Route | CSV import endpoint (POST create, PUT update, GET list) |
+| `tests/application/services/csvImportService.test.ts` | Unit | CSV import: mapping, validation, type derivation, update |
 | `tests/presentation/middleware/upload.test.ts` | Unit | Multer file upload middleware |
 
 ## Environment

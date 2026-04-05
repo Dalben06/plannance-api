@@ -3,6 +3,7 @@ import type { CsvService } from "../../application/services/csvService.js";
 import type { CsvMappingService } from "../../application/services/csvMappingService.js";
 import type { CsvImportService } from "../../application/services/csvImportService.js";
 import type { CsvMappingTemplateCreate } from "../../domain/csv.js";
+import type { CsvImportUpdate } from "../../domain/csvImport.js";
 import { HttpError } from "../middleware/errorHandler.js";
 
 const getAuthenticatedUserId = (req: Request): string => {
@@ -58,6 +59,24 @@ export const listPendingImportsHandler =
       const userId = getAuthenticatedUserId(req);
       const imports = await service.listPendingImports(userId);
       res.json({ data: imports });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const updateImportHandler =
+  (service: CsvImportService) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      const input = req.body as CsvImportUpdate;
+      const result = await service.updateImport(userId, input);
+      res.json({
+        id: result.id,
+        errorsLines: result.errorsLines,
+        data: result.data,
+        expiresAt: result.expiresAt,
+      });
     } catch (error) {
       next(error);
     }
