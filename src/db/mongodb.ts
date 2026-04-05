@@ -10,6 +10,7 @@ export const getMongoClient = (): MongoClient => {
       maxPoolSize: 10,
       serverSelectionTimeoutMS: 5000,
       socketTimeoutMS: 30000,
+      tls: true,
     });
   }
   return client;

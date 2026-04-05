@@ -8,6 +8,7 @@ import type { CalendarEventService } from "../src/application/services/calendarE
 import type { UserService } from "../src/application/services/userService.js";
 import type { CsvService } from "../src/application/services/csvService.js";
 import type { CsvMappingService } from "../src/application/services/csvMappingService.js";
+import type { CsvImportService } from "../src/application/services/csvImportService.js";
 import type { AuthenticatedUser } from "../src/domain/auth.js";
 
 type MockedService<T> = {
@@ -41,8 +42,14 @@ export const buildMockCsvService = (): MockedService<CsvService> => ({
 });
 
 export const buildMockCsvMappingService = (): MockedService<CsvMappingService> => ({
+  findById: vi.fn<CsvMappingService["findById"]>(),
   listMappings: vi.fn<CsvMappingService["listMappings"]>(),
   saveMapping: vi.fn<CsvMappingService["saveMapping"]>(),
+});
+
+export const buildMockCsvImportService = (): MockedService<CsvImportService> => ({
+  listPendingImports: vi.fn<CsvImportService["listPendingImports"]>(),
+  importCsv: vi.fn<CsvImportService["importCsv"]>(),
 });
 
 export const sampleAuthenticatedUser: AuthenticatedUser = {
@@ -60,6 +67,7 @@ export const buildAppDependencies = () => {
   const userService = buildMockUserService();
   const csvService = buildMockCsvService();
   const csvMappingService = buildMockCsvMappingService();
+  const csvImportService = buildMockCsvImportService();
 
   authService.verifyAccessToken.mockReturnValue(sampleAuthenticatedUser);
 
@@ -70,6 +78,7 @@ export const buildAppDependencies = () => {
     userService,
     csvService,
     csvMappingService,
+    csvImportService,
   };
 };
 
