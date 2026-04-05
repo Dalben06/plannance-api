@@ -18,6 +18,7 @@ import { HttpError } from "../../presentation/middleware/errorHandler.js";
 
 export type CsvImportService = {
   listPendingImports(userId: string): Promise<CsvImportResult[]>;
+  getImportById(userId: string, importId: string): Promise<CsvImportResult>;
   importCsv(userId: string, fileBuffer: Buffer, templateId: string): Promise<CsvImportResult>;
   updateImport(userId: string, input: CsvImportUpdate): Promise<CsvImportResult>;
   confirmImport(userId: string, importId: string): Promise<CsvConfirmResult>;
@@ -36,6 +37,14 @@ export const createCsvImportService = (
       throw new HttpError("No pending imports found", 404);
     }
     return imports;
+  },
+  async getImportById(userId, importId) {
+    const existing = await importRepo.findById(importId);
+    if (!existing || existing.userId !== userId) {
+      throw new HttpError("Import not found", 400);
+    }
+
+    return existing;
   },
 
   async importCsv(userId, fileBuffer, templateId) {

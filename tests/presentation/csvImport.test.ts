@@ -332,6 +332,72 @@ describe("GET /api/v1/csv/import", () => {
   });
 });
 
+describe("GET /api/v1/csv/import/:id", () => {
+  it("401: returns error when no auth token is provided", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/import/import-1",
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("400: returns error when import is not found or does not belong to the user", async () => {
+    const deps = buildAppDependencies();
+    deps.csvImportService.getImportById.mockRejectedValue(new HttpError("Import not found", 400));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/import/non-existent",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Import not found" });
+  });
+
+  it("200: returns the import result for a valid id", async () => {
+    const deps = buildAppDependencies();
+    const importResult = makeImportResult();
+    deps.csvImportService.getImportById.mockResolvedValue(importResult);
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/import/import-1",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({
+      id: importResult.id,
+      errorsLines: importResult.errorsLines,
+      data: importResult.data,
+      expiresAt: importResult.expiresAt,
+    });
+    expect(deps.csvImportService.getImportById).toHaveBeenCalledWith("user-123", "import-1");
+  });
+
+  it("500: returns internal server error when unexpected error occurs", async () => {
+    const deps = buildAppDependencies();
+    deps.csvImportService.getImportById.mockRejectedValue(new Error("DB failure"));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/import/import-1",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({ error: "Internal server error" });
+  });
+});
+
 describe("POST /api/v1/csv/confirm/:id", () => {
   it("401: returns error when no auth token is provided", async () => {
     const deps = buildAppDependencies();

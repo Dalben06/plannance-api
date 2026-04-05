@@ -466,6 +466,25 @@
           "response": []
         },
         {
+          "name": "Get Pending Import by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/import/<import-id>",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "import", "<import-id>"]
+            },
+            "description": "Get a single pending (temporary) CSV import by its ID. Returns 400 if the import does not exist or belongs to another user. Returns `{ id, data, errorsLines, expiresAt }`."
+          },
+          "response": []
+        },
+        {
           "name": "Import CSV",
           "request": {
             "method": "POST",

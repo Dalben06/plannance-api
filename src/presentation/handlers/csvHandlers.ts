@@ -121,3 +121,24 @@ export const confirmImportHandler =
       next(error);
     }
   };
+
+export const getImportById =
+  (service: CsvImportService) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      const { id } = req.params;
+      if (!id) {
+        throw new HttpError("Import ID is required", 400);
+      }
+      const result = await service.getImportById(userId, id);
+      res.json({
+        id: result.id,
+        errorsLines: result.errorsLines,
+        data: result.data,
+        expiresAt: result.expiresAt,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
