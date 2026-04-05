@@ -84,8 +84,8 @@ export const createCsvImportService = (
           id: randomUUID(),
           title: result.data.title,
           start: result.data.startAt,
-          amount,
-          type: amount >= 0 ? "debit" : "credit",
+          amount: amount < 0 ? amount * -1 : amount,
+          type: amount >= 0 ? "credit" : "debit",
         });
       } else {
         const rawAmount = String(rawObj.amount ?? "");
@@ -96,7 +96,7 @@ export const createCsvImportService = (
           title: String(rawObj.title ?? ""),
           start: String(rawObj.startAt ?? ""),
           amount: Number.isFinite(parsedAmount) ? parsedAmount : rawAmount,
-          type: Number.isFinite(parsedAmount) ? (parsedAmount >= 0 ? "debit" : "credit") : null,
+          type: Number.isFinite(parsedAmount) ? (parsedAmount >= 0 ? "credit" : "debit") : null,
           errors: result.error.issues.map((i) => i.message),
         });
       }
@@ -130,19 +130,19 @@ export const createCsvImportService = (
         title: row.title,
         startAt: row.start,
         amount: String(row.amount),
+        type: row.type,
       });
       if (!parsedRow.success) {
         throw new HttpError("Validation error", 400);
       }
 
       const amount = parsedRow.data.amount;
-      const type: CsvImportRow["type"] = amount >= 0 ? "debit" : "credit";
       return {
         id: row.id,
         title: parsedRow.data.title,
         start: parsedRow.data.startAt,
-        amount,
-        type,
+        amount: amount < 0 ? amount * -1 : amount,
+        type: row.type,
       };
     });
 

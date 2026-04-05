@@ -142,12 +142,12 @@ describe("CsvImportService", () => {
       title: "Salary",
       start: "2026-03-15",
       amount: 100.5,
-      type: "debit",
+      type: "credit",
     });
     expect(result.data[0]!.id).toBeDefined();
   });
 
-  it("derives type as debit when amount >= 0", async () => {
+  it("derives type as debit when amount < 0", async () => {
     const mappingService = buildMockMappingService();
     const importRepo = buildMockImportRepo();
     mappingService.findById.mockResolvedValue(makeTemplate());
@@ -159,8 +159,8 @@ describe("CsvImportService", () => {
 
     const csv = makeCsvBuffer([
       "Date,Amount,Description",
-      "2026-03-15,0,Zero amount",
-      "2026-03-15,50,Positive amount",
+      "2026-03-15,-1,Negative small amount",
+      "2026-03-15,-50,Negative amount",
     ]);
 
     const result = await service.importCsv(USER_ID, csv, TEMPLATE_ID);
@@ -169,7 +169,7 @@ describe("CsvImportService", () => {
     expect(result.data[1]!.type).toBe("debit");
   });
 
-  it("derives type as credit when amount < 0", async () => {
+  it("derives type as credit when amount > 0", async () => {
     const mappingService = buildMockMappingService();
     const importRepo = buildMockImportRepo();
     mappingService.findById.mockResolvedValue(makeTemplate());
@@ -179,7 +179,7 @@ describe("CsvImportService", () => {
       buildMockCalendarEventRepo()
     );
 
-    const csv = makeCsvBuffer(["Date,Amount,Description", "2026-03-15,-25.99,Grocery"]);
+    const csv = makeCsvBuffer(["Date,Amount,Description", "2026-03-15,25.99,Grocery"]);
 
     const result = await service.importCsv(USER_ID, csv, TEMPLATE_ID);
 
@@ -598,8 +598,8 @@ describe("CsvImportService.updateImport", () => {
         id: "row-1",
         title: "Salary",
         start: "2026-03-15",
-        amount: -100,
-        type: "credit",
+        amount: 100,
+        type: "debit",
       },
     ]);
   });
