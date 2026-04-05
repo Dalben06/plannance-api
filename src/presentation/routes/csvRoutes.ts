@@ -5,6 +5,7 @@ import type { CsvMappingService } from "../../application/services/csvMappingSer
 import type { CsvImportService } from "../../application/services/csvImportService.js";
 import {
   confirmImportHandler,
+  getImportById,
   importCsvHandler,
   listCsvMappingsHandler,
   listPendingImportsHandler,
@@ -43,6 +44,8 @@ export const createCsvRouter = (
   );
 
   router.get("/csv/import", requireAuth(authService), listPendingImportsHandler(importService));
+
+  router.get("/csv/import/:id", requireAuth(authService), getImportById(importService));
 
   router.put(
     "/csv/import",
