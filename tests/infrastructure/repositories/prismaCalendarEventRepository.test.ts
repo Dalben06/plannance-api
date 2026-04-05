@@ -75,6 +75,28 @@ describe("PrismaCalendarEventRepository", () => {
       );
     });
 
+    it("expands date-only range end to include the full last day", async () => {
+      const prisma = buildMockPrisma();
+      vi.mocked(prisma.calendarEvent.findMany).mockResolvedValue([]);
+      const repo = new PrismaCalendarEventRepository(prisma);
+
+      await repo.list({
+        dateRange: { start: "2026-03-15", end: "2026-03-20" },
+        weekStartsOn: 0,
+      });
+
+      expect(prisma.calendarEvent.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: expect.objectContaining({
+            startAt: {
+              gte: new Date("2026-03-15"),
+              lt: new Date("2026-03-21"),
+            },
+          }),
+        })
+      );
+    });
+
     it("does not add startAt filter for invalid month", async () => {
       const prisma = buildMockPrisma();
       vi.mocked(prisma.calendarEvent.findMany).mockResolvedValue([]);

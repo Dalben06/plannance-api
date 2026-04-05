@@ -7,6 +7,8 @@ import type {
   CsvImportErrorRow,
   CsvImportUpdate,
 } from "../../domain/csvImport.js";
+import type { CalendarEventRepository } from "../ports/calendarEventRepository.js";
+import type { CsvConfirmResult } from "../../domain/calendarEvent.js";
 import {
   csvImportRowSchema,
   csvImportUpdateSchema,
@@ -18,11 +20,15 @@ export type CsvImportService = {
   listPendingImports(userId: string): Promise<CsvImportResult[]>;
   importCsv(userId: string, fileBuffer: Buffer, templateId: string): Promise<CsvImportResult>;
   updateImport(userId: string, input: CsvImportUpdate): Promise<CsvImportResult>;
+  confirmImport(userId: string, importId: string): Promise<CsvConfirmResult>;
 };
+
+const normalizeDate = (dateStr: string): string => new Date(dateStr).toISOString().slice(0, 10);
 
 export const createCsvImportService = (
   mappingService: CsvMappingService,
-  importRepo: CsvImportRepository
+  importRepo: CsvImportRepository,
+  calendarEventRepo: CalendarEventRepository
 ): CsvImportService => ({
   async listPendingImports(userId) {
     const imports = await importRepo.findAllByUser(userId);
@@ -147,5 +153,61 @@ export const createCsvImportService = (
     };
 
     return importRepo.update(updated);
+  },
+
+  async confirmImport(userId, importId) {
+    const existing = await importRepo.findById(importId);
+    if (!existing || existing.userId !== userId) {
+      throw new HttpError("Import not found", 400);
+    }
+
+    if (existing.errorsLines && existing.errorsLines.length > 0) {
+      throw new HttpError("Import still has validation errors", 400);
+    }
+
+    const total = existing.data.length;
+
+    if (total === 0) {
+      await importRepo.delete(importId);
+      return { inserted: 0, duplicates: 0, total: 0 };
+    }
+
+    const dates = existing.data.map((row) => row.start);
+    const sorted = [...dates].sort();
+    const earliest = sorted[0]!;
+    const latest = sorted[sorted.length - 1]!;
+
+    const existingEvents = await calendarEventRepo.list({
+      userId,
+      dateRange: { start: earliest, end: latest },
+    });
+
+    const existingKeys = new Set(
+      existingEvents.map((e) => `${e.title}|${normalizeDate(e.start)}|${e.amount}`)
+    );
+
+    const newRows = existing.data.filter(
+      (row) => !existingKeys.has(`${row.title}|${normalizeDate(row.start)}|${row.amount}`)
+    );
+
+    if (newRows.length > 0) {
+      await calendarEventRepo.createMany(
+        newRows.map((row) => ({
+          userId,
+          title: row.title,
+          start: row.start,
+          amount: row.amount,
+          type: row.type,
+        }))
+      );
+    }
+
+    await importRepo.delete(importId);
+
+    return {
+      inserted: newRows.length,
+      duplicates: total - newRows.length,
+      total,
+    };
   },
 });

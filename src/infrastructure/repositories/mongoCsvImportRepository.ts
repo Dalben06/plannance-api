@@ -88,4 +88,11 @@ export class MongoCsvImportRepository implements CsvImportRepository {
     }
     return mapDoc(doc);
   }
+
+  async delete(id: string): Promise<boolean> {
+    await this.ensureIndexes();
+    const col = await this.collection();
+    const result = await col.deleteOne({ _id: id });
+    return result.deletedCount > 0;
+  }
 }

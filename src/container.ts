@@ -154,7 +154,11 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
 
   const csvImportService =
     overrides.csvImportService ??
-    createCsvImportService(csvMappingService, getCsvImportRepository());
+    createCsvImportService(
+      csvMappingService,
+      getCsvImportRepository(),
+      getCalendarEventRepository()
+    );
 
   return {
     calendarEventService,
