@@ -26,24 +26,26 @@ export class MongoCsvImportRepository implements CsvImportRepository {
   private indexesReady: Promise<void> | null = null;
 
   constructor(
-    private readonly client: MongoClient,
+    private readonly getClient: () => Promise<MongoClient>,
     private readonly dbName: string
   ) {}
 
-  private get collection() {
-    return this.client.db(this.dbName).collection<CsvImportDocument>(COLLECTION);
+  private async collection() {
+    const client = await this.getClient();
+    return client.db(this.dbName).collection<CsvImportDocument>(COLLECTION);
   }
 
   private async ensureIndexes(): Promise<void> {
-    this.indexesReady ??= this.collection
-      .createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 })
+    this.indexesReady ??= this.collection()
+      .then((col) => col.createIndex({ expiresAt: 1 }, { expireAfterSeconds: 0 }))
       .then(() => undefined);
     await this.indexesReady;
   }
 
   async findAllByUser(userId: string): Promise<CsvImportResult[]> {
     await this.ensureIndexes();
-    const docs = await this.collection.find({ userId }).toArray();
+    const col = await this.collection();
+    const docs = await col.find({ userId }).toArray();
     return docs.map(mapDoc);
   }
 
@@ -57,7 +59,8 @@ export class MongoCsvImportRepository implements CsvImportRepository {
       createdAt: new Date(importResult.createdAt),
       expiresAt: new Date(importResult.expiresAt),
     };
-    await this.collection.insertOne(doc);
+    const col = await this.collection();
+    await col.insertOne(doc);
     return mapDoc(doc);
   }
 }

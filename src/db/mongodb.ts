@@ -3,7 +3,7 @@ import { env } from "../config/env.js";
 
 let client: MongoClient | null = null;
 
-export const getMongoClient = (): MongoClient => {
+export const getMongoClient = async (): Promise<MongoClient> => {
   if (!client) {
     if (!env.MONGODB_URI) throw new Error("MONGODB_URI is not set");
     client = new MongoClient(env.MONGODB_URI, {
@@ -13,6 +13,7 @@ export const getMongoClient = (): MongoClient => {
       tls: true,
     });
   }
+  await client.connect();
   return client;
 };
 
