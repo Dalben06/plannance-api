@@ -23,6 +23,12 @@
       "value": "",
       "type": "string",
       "description": "Calendar event UUID — auto-set by Create Calendar Event request"
+    },
+    {
+      "key": "forecastId",
+      "value": "",
+      "type": "string",
+      "description": "Forecast UUID — auto-set by Create Forecast request"
     }
   ],
   "item": [
@@ -568,6 +574,147 @@
               "path": ["api", "v1", "csv", "confirm", "<import-id>"]
             },
             "description": "Confirm a pending temporary CSV import. Deduplicates imported rows against existing calendar events (matching title, date, and amount). Inserts non-duplicate rows into the calendar events table and deletes the temporary import from MongoDB. Returns `{ data: { inserted, duplicates, total } }`. Returns 400 if import not found, belongs to another user, or still has validation errors."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Forecast",
+      "item": [
+        {
+          "name": "List Forecasts",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/forecast",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "forecast"]
+            },
+            "description": "List all forecast events for the authenticated user."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Forecast",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/forecast/{{forecastId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "forecast", "{{forecastId}}"]
+            },
+            "description": "Get a single forecast by UUID. Uses `forecastId` collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Forecast",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('forecastId', json.data.id);",
+                  "  console.log('forecastId saved:', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rent\",\n  \"day\": 5,\n  \"amount\": 1200,\n  \"type\": \"debit\",\n  \"startDate\": \"2026-01-01\",\n  \"endDate\": null\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/forecast",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "forecast"]
+            },
+            "description": "Create a forecast (recurring fixed expense or income). `day` 1-31, `amount` > 0, `type` debit|credit, `startDate` cannot be in the future, `endDate` (optional) must be > startDate. On success, saves the new uuid to the `forecastId` collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Forecast",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Rent (updated)\",\n  \"amount\": 1300\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/forecast/{{forecastId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "forecast", "{{forecastId}}"]
+            },
+            "description": "Update a forecast. All fields are optional — send only what you want to change."
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Forecast",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/forecast/{{forecastId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "forecast", "{{forecastId}}"]
+            },
+            "description": "Delete a forecast by UUID. Returns 204 No Content on success."
           },
           "response": []
         }

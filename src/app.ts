@@ -9,6 +9,7 @@ import { createCalendarDaysRouter } from "./presentation/routes/calendarDayRoute
 import { createAuthRouter } from "./presentation/routes/authRoutes.js";
 import { createUserRouter } from "./presentation/routes/userRoutes.js";
 import { createCsvRouter } from "./presentation/routes/csvRoutes.js";
+import { createForecastEventRouter } from "./presentation/routes/forecastEventRoutes.js";
 
 export type AppDependencies = AppContainerOverrides;
 
@@ -39,6 +40,10 @@ export const createApp = (deps: AppDependencies = {}) => {
   app.use(
     "/api/v1",
     createCalendarDaysRouter(container.calendarDaysService, container.authService)
+  );
+  app.use(
+    "/api/v1",
+    createForecastEventRouter(container.forecastEventService, container.authService)
   );
 
   app.get("/", (_req, res) => {

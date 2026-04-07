@@ -39,3 +39,20 @@ model CalendarEvent {
   @@index([startAt], name: "idx_calendar_events_start_at")
   @@map("calendar_events")
 }
+
+model ForecastEvent {
+  id        BigInt    @id @default(autoincrement())
+  uuid      String    @unique @db.VarChar(64)
+  userId    String    @map("user_id") @db.VarChar(64)
+  name      String    @db.VarChar(255)
+  day       Int       @db.SmallInt
+  amount    Decimal   @db.Decimal(12, 2)
+  type      EventType
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([userId], name: "idx_forecast_events_user_id")
+  @@map("forecast_events")
+}

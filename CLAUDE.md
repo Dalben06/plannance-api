@@ -86,7 +86,7 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 - Session tokens (JWTs) remain HMAC-SHA256 via `HmacSessionTokenService` — separate from password hashing
 - Never stored or compared as plain strings
 
-**Database:** PostgreSQL via Prisma 6. Schema: `prisma/schema.prisma`. Two models: `User`, `CalendarEvent`.
+**Database:** PostgreSQL via Prisma 6. Schema: `prisma/schema.prisma`. Three models: `User`, `CalendarEvent`, `ForecastEvent`.
 - `db push` for dev (no migration history); use `prisma migrate dev` once a baseline is established
 - `getPrismaClient()` in `src/db/prisma.ts` returns a singleton
 - BigInt IDs → `.toString()` for domain; Decimal amounts → `Number(row.amount)`
@@ -126,10 +126,15 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 | POST | `/api/v1/csv/import` | ✓ | Import CSV with mapping template (multipart `file` + `templateId`), returns temp import with valid/error rows |
 | PUT | `/api/v1/csv/import` | ✓ | Update a pending temporary CSV import (body: `id`, `data`, `errorsLines`) |
 | POST | `/api/v1/csv/confirm/:id` | ✓ | Confirm a temporary CSV import: deduplicates against existing events, inserts new rows, deletes temp import |
+| GET | `/api/v1/forecast` | ✓ | List forecast events for the authenticated user |
+| GET | `/api/v1/forecast/:id` | ✓ | Get a single forecast by UUID |
+| POST | `/api/v1/forecast` | ✓ | Create a forecast (recurring fixed expense/income) |
+| PUT | `/api/v1/forecast/:id` | ✓ | Update a forecast |
+| DELETE | `/api/v1/forecast/:id` | ✓ | Delete a forecast |
 
 ## Test Structure
 
-~213 tests across 23 files. All pass with `npm run test`. No database required.
+~251 tests across 26 files. All pass with `npm run test`. No database required.
 
 Tests are organized by architectural layer under `tests/`:
 
@@ -154,6 +159,9 @@ Tests are organized by architectural layer under `tests/`:
 | `tests/presentation/csvImport.test.ts` | Route | CSV import endpoint (POST create, PUT update, GET list, GET by id, POST confirm) |
 | `tests/application/services/csvImportService.test.ts` | Unit | CSV import: mapping, validation, type derivation, update, confirm (dedup) |
 | `tests/presentation/middleware/upload.test.ts` | Unit | Multer file upload middleware |
+| `tests/presentation/forecastEvents.test.ts` | Route | Forecast CRUD, auth guard, validation rules |
+| `tests/application/services/forecastEventService.test.ts` | Unit | UUID generation, user-scoped pass-through |
+| `tests/infrastructure/repositories/prismaForecastEventRepository.test.ts` | Unit | Forecast repository with mocked Prisma |
 
 ## Environment
 

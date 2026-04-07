@@ -9,6 +9,7 @@ import type { UserService } from "../src/application/services/userService.js";
 import type { CsvService } from "../src/application/services/csvService.js";
 import type { CsvMappingService } from "../src/application/services/csvMappingService.js";
 import type { CsvImportService } from "../src/application/services/csvImportService.js";
+import type { ForecastEventService } from "../src/application/services/forecastEventService.js";
 import type { AuthenticatedUser } from "../src/domain/auth.js";
 
 type MockedService<T> = {
@@ -55,6 +56,14 @@ export const buildMockCsvImportService = (): MockedService<CsvImportService> => 
   confirmImport: vi.fn<CsvImportService["confirmImport"]>(),
 });
 
+export const buildMockForecastEventService = (): MockedService<ForecastEventService> => ({
+  listForecasts: vi.fn<ForecastEventService["listForecasts"]>(),
+  getForecastById: vi.fn<ForecastEventService["getForecastById"]>(),
+  createForecast: vi.fn<ForecastEventService["createForecast"]>(),
+  updateForecast: vi.fn<ForecastEventService["updateForecast"]>(),
+  deleteForecast: vi.fn<ForecastEventService["deleteForecast"]>(),
+});
+
 export const sampleAuthenticatedUser: AuthenticatedUser = {
   id: "user-123",
   email: "user@example.com",
@@ -71,6 +80,7 @@ export const buildAppDependencies = () => {
   const csvService = buildMockCsvService();
   const csvMappingService = buildMockCsvMappingService();
   const csvImportService = buildMockCsvImportService();
+  const forecastEventService = buildMockForecastEventService();
 
   authService.verifyAccessToken.mockReturnValue(sampleAuthenticatedUser);
 
@@ -82,6 +92,7 @@ export const buildAppDependencies = () => {
     csvService,
     csvMappingService,
     csvImportService,
+    forecastEventService,
   };
 };
 

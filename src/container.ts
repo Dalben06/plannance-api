@@ -1,4 +1,5 @@
 import type { CalendarEventRepository } from "./application/ports/calendarEventRepository.js";
+import type { ForecastEventRepository } from "./application/ports/forecastEventRepository.js";
 import type { GoogleIdentityProvider } from "./application/ports/googleIdentityProvider.js";
 import type { SessionTokenService } from "./application/ports/sessionTokenService.js";
 import type { PasswordHasher } from "./application/ports/passwordHasher.js";
@@ -25,6 +26,10 @@ import {
   createCsvImportService,
   type CsvImportService,
 } from "./application/services/csvImportService.js";
+import {
+  createForecastEventService,
+  type ForecastEventService,
+} from "./application/services/forecastEventService.js";
 import { env } from "./config/env.js";
 import { getPrismaClient } from "./db/prisma.js";
 import { getMongoClient } from "./db/mongodb.js";
@@ -32,6 +37,7 @@ import { GoogleTokenInfoIdentityProvider } from "./infrastructure/auth/googleTok
 import { HmacSessionTokenService } from "./infrastructure/auth/hmacSessionTokenService.js";
 import { BcryptPasswordHasher } from "./infrastructure/auth/bcryptPasswordHasher.js";
 import { PrismaCalendarEventRepository } from "./infrastructure/repositories/prismaCalendarEventRepository.js";
+import { PrismaForecastEventRepository } from "./infrastructure/repositories/prismaForecastEventRepository.js";
 import { PrismaUserRepository } from "./infrastructure/repositories/prismaUserRepository.js";
 import { MongoCsvMappingRepository } from "./infrastructure/repositories/mongoCsvMappingRepository.js";
 import { MongoCsvImportRepository } from "./infrastructure/repositories/mongoCsvImportRepository.js";
@@ -44,6 +50,7 @@ export type AppContainer = {
   csvService: CsvService;
   csvMappingService: CsvMappingService;
   csvImportService: CsvImportService;
+  forecastEventService: ForecastEventService;
 };
 
 export type AppContainerOverrides = Partial<AppContainer> & {
@@ -55,6 +62,7 @@ export type AppContainerOverrides = Partial<AppContainer> & {
   userDocumentRepository?: UserDocumentRepository;
   csvMappingRepository?: CsvMappingRepository;
   csvImportRepository?: CsvImportRepository;
+  forecastEventRepository?: ForecastEventRepository;
 };
 
 export const createContainer = (overrides: AppContainerOverrides = {}): AppContainer => {
@@ -65,6 +73,7 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
   let passwordHasher = overrides.passwordHasher;
   let csvMappingRepository = overrides.csvMappingRepository;
   let csvImportRepository = overrides.csvImportRepository;
+  let forecastEventRepository = overrides.forecastEventRepository;
   let resolvedCsvMappingService = overrides.csvMappingService;
 
   const getCalendarEventRepository = (): CalendarEventRepository => {
@@ -160,6 +169,16 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
       getCalendarEventRepository()
     );
 
+  const getForecastEventRepository = (): ForecastEventRepository => {
+    if (!forecastEventRepository) {
+      forecastEventRepository = new PrismaForecastEventRepository(getPrismaClient());
+    }
+    return forecastEventRepository;
+  };
+
+  const forecastEventService =
+    overrides.forecastEventService ?? createForecastEventService(getForecastEventRepository());
+
   return {
     calendarEventService,
     calendarDaysService,
@@ -168,5 +187,6 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
     csvService,
     csvMappingService,
     csvImportService,
+    forecastEventService,
   };
 };
