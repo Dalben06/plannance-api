@@ -43,8 +43,10 @@ export const buildMockCsvService = (): MockedService<CsvService> => ({
 
 export const buildMockCsvMappingService = (): MockedService<CsvMappingService> => ({
   findById: vi.fn<CsvMappingService["findById"]>(),
+  getMappingById: vi.fn<CsvMappingService["getMappingById"]>(),
   listMappings: vi.fn<CsvMappingService["listMappings"]>(),
   saveMapping: vi.fn<CsvMappingService["saveMapping"]>(),
+  updateMapping: vi.fn<CsvMappingService["updateMapping"]>(),
 });
 
 export const buildMockCsvImportService = (): MockedService<CsvImportService> => ({

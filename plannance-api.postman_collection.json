@@ -23,6 +23,12 @@
       "value": "",
       "type": "string",
       "description": "Calendar event UUID — auto-set by Create Calendar Event request"
+    },
+    {
+      "key": "mappingId",
+      "value": "",
+      "type": "string",
+      "description": "CSV mapping template ID — auto-set by Save CSV Mapping request"
     }
   ],
   "item": [
@@ -415,7 +421,41 @@
           "response": []
         },
         {
+          "name": "Get CSV Mapping by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/mapping/{{mappingId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "mapping", "{{mappingId}}"]
+            },
+            "description": "Get a single CSV mapping template by ID. Returns 400 if not found or belongs to another user."
+          },
+          "response": []
+        },
+        {
           "name": "Save CSV Mapping",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "  const json = pm.response.json();",
+                  "  pm.collectionVariables.set('mappingId', json.data.id);",
+                  "  console.log('mappingId saved:', json.data.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -442,7 +482,39 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "csv", "mapping"]
             },
-            "description": "Save a new CSV column mapping template. Each mapping maps a CSV column name (`from`) to a CalendarEvent field (`to`). Valid `to` values: `title`, `amount`, `type`, `startAt`. Requires at least one mapping."
+            "description": "Save a new CSV column mapping template. Each mapping maps a CSV column name (`from`) to a CalendarEvent field (`to`). Valid `to` values: `title`, `amount`, `type`, `startAt`. Requires at least one mapping. On success, automatically saves the new template's `id` to the `mappingId` collection variable."
+          },
+          "response": []
+        },
+        {
+          "name": "Update CSV Mapping",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{mappingId}}\",\n  \"name\": \"bank-export-updated\",\n  \"mappings\": [\n    { \"from\": \"Date\", \"to\": \"startAt\" },\n    { \"from\": \"Amount\", \"to\": \"amount\" },\n    { \"from\": \"Description\", \"to\": \"title\" }\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/csv/mapping",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "csv", "mapping"]
+            },
+            "description": "Update an existing CSV mapping template. Send the template `id` in the body along with the updated `name` and `mappings`. Returns 400 if the template is not found or belongs to another user."
           },
           "response": []
         },

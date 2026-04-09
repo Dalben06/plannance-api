@@ -4,4 +4,9 @@ export interface CsvMappingRepository {
   findById(id: string): Promise<CsvMappingTemplate | null>;
   findAllByUser(userId: string): Promise<CsvMappingTemplate[]>;
   save(userId: string, input: CsvMappingTemplateCreate): Promise<CsvMappingTemplate>;
+  update(
+    id: string,
+    userId: string,
+    input: CsvMappingTemplateCreate
+  ): Promise<CsvMappingTemplate | null>;
 }
