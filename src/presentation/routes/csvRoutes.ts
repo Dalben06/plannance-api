@@ -5,18 +5,23 @@ import type { CsvMappingService } from "../../application/services/csvMappingSer
 import type { CsvImportService } from "../../application/services/csvImportService.js";
 import {
   confirmImportHandler,
+  getCsvMappingByIdHandler,
   getImportById,
   importCsvHandler,
   listCsvMappingsHandler,
   listPendingImportsHandler,
   mapCsvColumnsHandler,
   saveCsvMappingHandler,
+  updateCsvMappingHandler,
   updateImportHandler,
 } from "../handlers/csvHandlers.js";
 import { handleMulterError, uploadSingleCsv } from "../middleware/upload.js";
 import { requireAuth } from "../middleware/requireAuth.js";
 import { validateBody } from "../middleware/validate.js";
-import { saveCsvMappingSchema } from "../../domain/validators/csvSchemas.js";
+import {
+  saveCsvMappingSchema,
+  updateCsvMappingSchema,
+} from "../../domain/validators/csvSchemas.js";
 import { csvImportUpdateSchema } from "../../domain/validators/csvImportSchemas.js";
 
 export const createCsvRouter = (
@@ -36,11 +41,25 @@ export const createCsvRouter = (
   );
 
   router.get("/csv/mapping", requireAuth(authService), listCsvMappingsHandler(mappingService));
+  router.get(
+    "/csv/mapping/:id",
+    requireAuth(authService),
+    getCsvMappingByIdHandler(mappingService)
+  );
   router.post(
     "/csv/mapping",
     requireAuth(authService),
     validateBody(saveCsvMappingSchema),
     saveCsvMappingHandler(mappingService)
+  );
+  router.put(
+    "/csv/mapping/:id",
+    requireAuth(authService),
+    validateBody(updateCsvMappingSchema),
+    (req, res, next) => {
+      req.body.id = req.params.id;
+      return updateCsvMappingHandler(mappingService)(req, res, next);
+    }
   );
 
   router.get("/csv/import", requireAuth(authService), listPendingImportsHandler(importService));

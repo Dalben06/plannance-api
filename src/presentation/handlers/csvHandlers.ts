@@ -39,6 +39,22 @@ export const listCsvMappingsHandler =
     }
   };
 
+export const getCsvMappingByIdHandler =
+  (service: CsvMappingService) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      const { id } = req.params;
+      if (!id) {
+        throw new HttpError("Mapping ID is required", 400);
+      }
+      const template = await service.getMappingById(id, userId);
+      res.json({ data: template });
+    } catch (error) {
+      next(error);
+    }
+  };
+
 export const saveCsvMappingHandler =
   (service: CsvMappingService) =>
   async (req: Request, res: Response, next: NextFunction): Promise<void> => {
@@ -47,6 +63,19 @@ export const saveCsvMappingHandler =
       const input = req.body as CsvMappingTemplateCreate;
       const created = await service.saveMapping(userId, input);
       res.status(201).json({ data: created });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+export const updateCsvMappingHandler =
+  (service: CsvMappingService) =>
+  async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      const userId = getAuthenticatedUserId(req);
+      const { id, ...input } = req.body as { id: string } & CsvMappingTemplateCreate;
+      const updated = await service.updateMapping(id, userId, input);
+      res.json({ data: updated });
     } catch (error) {
       next(error);
     }

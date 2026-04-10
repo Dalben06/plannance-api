@@ -64,4 +64,19 @@ export class MongoCsvMappingRepository implements CsvMappingRepository {
     await col.insertOne(doc);
     return mapDoc(doc);
   }
+
+  async update(
+    id: string,
+    userId: string,
+    input: CsvMappingTemplateCreate
+  ): Promise<CsvMappingTemplate | null> {
+    const now = new Date();
+    const col = await this.collection();
+    const result = await col.findOneAndUpdate(
+      { _id: id, userId },
+      { $set: { name: input.name, mappings: input.mappings, updatedAt: now } },
+      { returnDocument: "after" }
+    );
+    return result ? mapDoc(result) : null;
+  }
 }

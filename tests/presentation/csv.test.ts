@@ -217,6 +217,68 @@ describe("GET /api/v1/csv/mapping", () => {
   });
 });
 
+describe("GET /api/v1/csv/mapping/:id", () => {
+  it("401: returns error when no auth token is provided", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/mapping/tpl-1",
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("200: returns the mapping template when found", async () => {
+    const deps = buildAppDependencies();
+    const template = makeTemplate();
+    deps.csvMappingService.getMappingById.mockResolvedValue(template);
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: template });
+    expect(deps.csvMappingService.getMappingById).toHaveBeenCalledWith("tpl-1", "user-123");
+  });
+
+  it("400: returns error when mapping is not found", async () => {
+    const deps = buildAppDependencies();
+    deps.csvMappingService.getMappingById.mockRejectedValue(
+      new HttpError("Mapping not found", 400)
+    );
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/mapping/tpl-missing",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Mapping not found" });
+  });
+
+  it("500: returns error on unexpected service failure", async () => {
+    const deps = buildAppDependencies();
+    deps.csvMappingService.getMappingById.mockRejectedValue(new Error("Unexpected failure"));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "GET",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+    });
+
+    expect(res.status).toBe(500);
+  });
+});
+
 describe("POST /api/v1/csv/mapping", () => {
   it("401: returns error when no auth token is provided", async () => {
     const deps = buildAppDependencies();
@@ -295,5 +357,144 @@ describe("POST /api/v1/csv/mapping", () => {
     });
 
     expect(res.status).toBe(400);
+  });
+});
+
+describe("PUT /api/v1/csv/mapping", () => {
+  it("401: returns error when no auth token is provided", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping",
+      body: {
+        id: "tpl-1",
+        name: "updated-name",
+        mappings: [{ from: "Date", to: "startAt" }],
+      },
+    });
+
+    expect(res.status).toBe(401);
+  });
+
+  it("200: updates and returns the mapping template", async () => {
+    const deps = buildAppDependencies();
+    const updated = makeTemplate({ name: "updated-name" });
+    deps.csvMappingService.updateMapping.mockResolvedValue(updated);
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+      body: {
+        id: "tpl-1",
+        name: "updated-name",
+        mappings: [{ from: "Date", to: "startAt" }],
+      },
+    });
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ data: updated });
+    expect(deps.csvMappingService.updateMapping).toHaveBeenCalledWith("tpl-1", "user-123", {
+      name: "updated-name",
+      mappings: [{ from: "Date", to: "startAt" }],
+    });
+  });
+
+  it("400: returns error when mapping is not found", async () => {
+    const deps = buildAppDependencies();
+    deps.csvMappingService.updateMapping.mockRejectedValue(new HttpError("Mapping not found", 400));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping/tpl-missing",
+      headers: { Authorization: AUTH_HEADER },
+      body: {
+        id: "tpl-missing",
+        name: "x",
+        mappings: [{ from: "Date", to: "startAt" }],
+      },
+    });
+
+    expect(res.status).toBe(400);
+    expect(res.body).toEqual({ error: "Mapping not found" });
+  });
+
+  it("400: returns validation error when id is missing", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+      body: { name: "x", mappings: [{ from: "Date", to: "startAt" }] },
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("400: returns validation error when name is missing", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+      body: { id: "tpl-1", mappings: [{ from: "Date", to: "startAt" }] },
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("400: returns validation error when mappings array is empty", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+      body: { id: "tpl-1", name: "x", mappings: [] },
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("400: returns validation error when 'to' is not a valid CalendarEvent field", async () => {
+    const deps = buildAppDependencies();
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+      body: { id: "tpl-1", name: "x", mappings: [{ from: "Date", to: "badField" }] },
+    });
+
+    expect(res.status).toBe(400);
+  });
+
+  it("500: returns error on unexpected service failure", async () => {
+    const deps = buildAppDependencies();
+    deps.csvMappingService.updateMapping.mockRejectedValue(new Error("Unexpected failure"));
+    const app = createApp(deps);
+
+    const res = await sendRequest(app, {
+      method: "PUT",
+      url: "/api/v1/csv/mapping/tpl-1",
+      headers: { Authorization: AUTH_HEADER },
+      body: {
+        id: "tpl-1",
+        name: "x",
+        mappings: [{ from: "Date", to: "startAt" }],
+      },
+    });
+
+    expect(res.status).toBe(500);
   });
 });

@@ -148,8 +148,11 @@ export const createContainer = (overrides: AppContainerOverrides = {}): AppConta
 
   const csvMappingService: CsvMappingService = {
     findById: (id) => getResolvedCsvMappingService().findById(id),
+    getMappingById: (id, userId) => getResolvedCsvMappingService().getMappingById(id, userId),
     listMappings: (userId) => getResolvedCsvMappingService().listMappings(userId),
     saveMapping: (userId, input) => getResolvedCsvMappingService().saveMapping(userId, input),
+    updateMapping: (id, userId, input) =>
+      getResolvedCsvMappingService().updateMapping(id, userId, input),
   };
 
   const csvImportService =
