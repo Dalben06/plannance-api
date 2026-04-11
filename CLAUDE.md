@@ -91,7 +91,7 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 - Session tokens (JWTs) remain HMAC-SHA256 via `HmacSessionTokenService` — separate from password hashing
 - Never stored or compared as plain strings
 
-**Database:** PostgreSQL via Prisma 6. Schema: `prisma/schema.prisma`. Two models: `User`, `CalendarEvent`.
+**Database:** PostgreSQL via Prisma 6. Schema: `prisma/schema.prisma`. Models: `User`, `CalendarEvent`, `UserPlan`.
 
 - `db push` for dev (no migration history); use `prisma migrate dev` once a baseline is established
 - `getPrismaClient()` in `src/db/prisma.ts` returns a singleton
@@ -135,10 +135,13 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 | POST   | `/api/v1/csv/import`          | ✓    | Import CSV with mapping template (multipart `file` + `templateId`), returns temp import with valid/error rows |
 | PUT    | `/api/v1/csv/import`          | ✓    | Update a pending temporary CSV import (body: `id`, `data`, `errorsLines`)                                     |
 | POST   | `/api/v1/csv/confirm/:id`     | ✓    | Confirm a temporary CSV import: deduplicates against existing events, inserts new rows, deletes temp import   |
+| GET    | `/api/v1/users/plan`          | ✓    | Get the authenticated user's plan (budget, reminders); 404 if none exists                                     |
+| POST   | `/api/v1/users/plan`          | ✓    | Create a plan for the authenticated user; 409 if one already exists                                           |
+| PUT    | `/api/v1/users/plan`          | ✓    | Upsert the authenticated user's plan (creates if not found, updates if found)                                 |
 
 ## Test Structure
 
-~231 tests across 23 files. All pass with `npm run test`. No database required.
+~268 tests across 26 files. All pass with `npm run test`. No database required.
 
 Tests are organized by architectural layer under `tests/`:
 
@@ -164,6 +167,9 @@ Tests are organized by architectural layer under `tests/`:
 | `tests/application/services/csvImportService.test.ts`                     | Unit  | CSV import: mapping, validation, type derivation, update, confirm (dedup)        |
 | `tests/application/services/csvMappingService.test.ts`                    | Unit  | Mapping list, save, get-by-id (ownership check), update (ownership check)        |
 | `tests/presentation/middleware/upload.test.ts`                            | Unit  | Multer file upload middleware                                                    |
+| `tests/presentation/userPlan.test.ts`                                     | Route | GET/POST/PUT user plan endpoints, auth guard, userId spoofing protection         |
+| `tests/application/services/userPlanService.test.ts`                      | Unit  | getPlan, createPlan, upsertPlan service logic                                    |
+| `tests/infrastructure/repositories/prismaUserPlanRepository.test.ts`      | Unit  | UserPlan repository CRUD with mocked Prisma                                      |
 
 ## Environment
 

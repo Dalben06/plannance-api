@@ -9,6 +9,7 @@ import { createCalendarDaysRouter } from "./presentation/routes/calendarDayRoute
 import { createAuthRouter } from "./presentation/routes/authRoutes.js";
 import { createUserRouter } from "./presentation/routes/userRoutes.js";
 import { createCsvRouter } from "./presentation/routes/csvRoutes.js";
+import { createUserPlanRouter } from "./presentation/routes/userPlanRoutes.js";
 
 export type AppDependencies = AppContainerOverrides;
 
@@ -40,6 +41,7 @@ export const createApp = (deps: AppDependencies = {}) => {
     "/api/v1",
     createCalendarDaysRouter(container.calendarDaysService, container.authService)
   );
+  app.use("/api/v1", createUserPlanRouter(container.userPlanService, container.authService));
 
   app.get("/", (_req, res) => {
     res.json({ message: "Plannance API up. See /api/v1/health" });

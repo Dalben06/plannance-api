@@ -644,6 +644,94 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "User Plan",
+      "item": [
+        {
+          "name": "Get User Plan",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "plan"]
+            },
+            "description": "Get the authenticated user's plan (budget, reminder settings). Returns 404 if no plan exists yet."
+          },
+          "response": []
+        },
+        {
+          "name": "Create User Plan",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"budget\": 3000,\n  \"reminderImportRegister\": true,\n  \"notifyFixedEventOnDay\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "plan"]
+            },
+            "description": "Create a plan for the authenticated user. `budget` must be >= 0. Both boolean fields are required. Returns 409 if a plan already exists for this user."
+          },
+          "response": []
+        },
+        {
+          "name": "Upsert User Plan",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"budget\": 3500,\n  \"reminderImportRegister\": false,\n  \"notifyFixedEventOnDay\": true\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/plan",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "plan"]
+            },
+            "description": "Upsert the authenticated user's plan. If no plan exists it is created; if one already exists it is updated. Returns 200 in both cases."
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

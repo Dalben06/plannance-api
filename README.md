@@ -51,7 +51,7 @@ npx prisma db push
 npx prisma generate
 ```
 
-Schema file: `prisma/schema.prisma`. Two models: `User`, `CalendarEvent`.
+Schema file: `prisma/schema.prisma`. Models: `User`, `CalendarEvent`, `UserPlan`.
 
 ## Local Development
 
@@ -128,13 +128,36 @@ All endpoints below require `Authorization: Bearer <token>`.
   - Returns a 42-slot month grid (6 weeks) with events and income/expense totals per day.
   - `month` is required (`YYYY-MM` format). `weekStartsOn`: `0` = Sunday (default), `1` = Monday.
 
+### User Plan
+
+All endpoints below require `Authorization: Bearer <token>`.
+
+- `GET /users/plan`
+  - Returns the authenticated user's plan (budget, reminder settings). Returns 404 if no plan exists.
+
+- `POST /users/plan`
+  - Creates a plan for the authenticated user.
+  - Body:
+    ```json
+    {
+      "budget": 3000,
+      "reminderImportRegister": true,
+      "notifyFixedEventOnDay": false
+    }
+    ```
+  - `budget` must be `>= 0`. Both boolean fields are required. Returns 201 on success.
+
+- `PUT /users/plan`
+  - Upserts the authenticated user's plan. If a plan exists, updates it; if not, creates a new one.
+  - Body: same fields as POST. Returns 200 in both cases.
+
 ## Tests
 
 ```bash
 npm test
 ```
 
-~124 tests across 14 files. No database required — tests mock at the service layer.
+~268 tests across 26 files. No database required — tests mock at the service layer.
 
 ## Docker
 
