@@ -9,6 +9,7 @@ import type { UserService } from "../src/application/services/userService.js";
 import type { CsvService } from "../src/application/services/csvService.js";
 import type { CsvMappingService } from "../src/application/services/csvMappingService.js";
 import type { CsvImportService } from "../src/application/services/csvImportService.js";
+import type { UserPlanService } from "../src/application/services/userPlanService.js";
 import type { UserSettingsService } from "../src/application/services/userSettingsService.js";
 import type { AuthenticatedUser } from "../src/domain/auth.js";
 
@@ -58,6 +59,12 @@ export const buildMockCsvImportService = (): MockedService<CsvImportService> => 
   confirmImport: vi.fn<CsvImportService["confirmImport"]>(),
 });
 
+export const buildMockUserPlanService = (): MockedService<UserPlanService> => ({
+  getPlan: vi.fn<UserPlanService["getPlan"]>(),
+  createPlan: vi.fn<UserPlanService["createPlan"]>(),
+  upsertPlan: vi.fn<UserPlanService["upsertPlan"]>(),
+});
+
 export const buildMockUserSettingsService = (): MockedService<UserSettingsService> => ({
   getByUserId: vi.fn<UserSettingsService["getByUserId"]>(),
   create: vi.fn<UserSettingsService["create"]>(),
@@ -80,6 +87,7 @@ export const buildAppDependencies = () => {
   const csvService = buildMockCsvService();
   const csvMappingService = buildMockCsvMappingService();
   const csvImportService = buildMockCsvImportService();
+  const userPlanService = buildMockUserPlanService();
   const userSettingsService = buildMockUserSettingsService();
 
   authService.verifyAccessToken.mockReturnValue(sampleAuthenticatedUser);
@@ -92,6 +100,7 @@ export const buildAppDependencies = () => {
     csvService,
     csvMappingService,
     csvImportService,
+    userPlanService,
     userSettingsService,
   };
 };

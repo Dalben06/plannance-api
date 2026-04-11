@@ -40,6 +40,36 @@ model CalendarEvent {
   @@map("calendar_events")
 }
 
+model ForecastEvent {
+  id        BigInt    @id @default(autoincrement())
+  uuid      String    @unique @db.VarChar(64)
+  userId    String    @map("user_id") @db.VarChar(64)
+  name      String    @db.VarChar(255)
+  day       Int       @db.SmallInt
+  amount    Decimal   @db.Decimal(12, 2)
+  type      EventType
+  startDate DateTime  @map("start_date") @db.Date
+  endDate   DateTime? @map("end_date") @db.Date
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt DateTime  @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([userId], name: "idx_forecast_events_user_id")
+  @@map("forecast_events")
+}
+
+model UserPlan {
+  id                      BigInt   @id @default(autoincrement())
+  userId                  String   @map("user_id") @db.VarChar(64)
+  budget                  Decimal  @db.Decimal(12, 2)
+  reminderImportRegister  Boolean  @map("reminder_import_register")
+  notifyFixedEventOnDay   Boolean  @map("notify_fixed_event_on_day")
+  createdAt               DateTime @default(now()) @map("created_at") @db.Timestamptz()
+  updatedAt               DateTime @updatedAt @map("updated_at") @db.Timestamptz()
+
+  @@index([userId], name: "idx_user_plans_user_id")
+  @@map("user_plans")
+}
+
 model UserSettings {
   id              BigInt   @id @default(autoincrement())
   userId          String   @unique @map("user_id") @db.VarChar(64)
@@ -52,3 +82,5 @@ model UserSettings {
 
   @@map("user_settings")
 }
+
+

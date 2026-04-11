@@ -51,7 +51,7 @@ npx prisma db push
 npx prisma generate
 ```
 
-Schema file: `prisma/schema.prisma`. Three models: `User`, `CalendarEvent`, `UserSettings`.
+Schema file: `prisma/schema.prisma`. Models: `User`, `CalendarEvent`, `ForecastEvent`, `UserPlan`, `UserSettings`.
 
 ## Local Development
 
@@ -145,6 +145,29 @@ All endpoints below require `Authorization: Bearer <token>`.
   - Updates all user settings fields.
   - Body: `{ "phoneNumber": "...", "isDarkMode": true|false, "notifyByEmail": true|false, "notifyByMessage": true|false }`
   - Returns 200 on success, 404 if settings have not been created yet.
+
+### User Plan
+
+All endpoints below require `Authorization: Bearer <token>`.
+
+- `GET /users/plan`
+  - Returns the authenticated user's plan (budget, reminder settings). Returns 404 if no plan exists.
+
+- `POST /users/plan`
+  - Creates a plan for the authenticated user.
+  - Body:
+    ```json
+    {
+      "budget": 3000,
+      "reminderImportRegister": true,
+      "notifyFixedEventOnDay": false
+    }
+    ```
+  - `budget` must be `>= 0`. Both boolean fields are required. Returns 201 on success.
+
+- `PUT /users/plan`
+  - Upserts the authenticated user's plan. If a plan exists, updates it; if not, creates a new one.
+  - Body: same fields as POST. Returns 200 in both cases.
 
 ## Tests
 
