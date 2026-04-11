@@ -646,6 +646,94 @@
       ]
     },
     {
+      "name": "User Settings",
+      "item": [
+        {
+          "name": "Get User Settings",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "settings"]
+            },
+            "description": "Get the authenticated user's settings. Returns `{ phoneNumber, isDarkMode, notifyByEmail, notifyByMessage }`. Returns 404 if settings have not been created yet."
+          },
+          "response": []
+        },
+        {
+          "name": "Create User Settings",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1234567890\",\n  \"isDarkMode\": false,\n  \"notifyByEmail\": false,\n  \"notifyByMessage\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "settings"]
+            },
+            "description": "Create user settings for the authenticated user. `notifyByEmail` and `notifyByMessage` default to `false` if omitted. Returns 201 on success, 409 if settings already exist."
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Settings",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phoneNumber\": \"+1987654321\",\n  \"isDarkMode\": true,\n  \"notifyByEmail\": true,\n  \"notifyByMessage\": false\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/settings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "users", "settings"]
+            },
+            "description": "Update the authenticated user's settings. All four fields are required. Returns 200 on success, 404 if settings have not been created yet."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
       "name": "User Plan",
       "item": [
         {

@@ -51,7 +51,7 @@ npx prisma db push
 npx prisma generate
 ```
 
-Schema file: `prisma/schema.prisma`. Models: `User`, `CalendarEvent`, `UserPlan`.
+Schema file: `prisma/schema.prisma`. Models: `User`, `CalendarEvent`, `ForecastEvent`, `UserPlan`, `UserSettings`.
 
 ## Local Development
 
@@ -128,6 +128,24 @@ All endpoints below require `Authorization: Bearer <token>`.
   - Returns a 42-slot month grid (6 weeks) with events and income/expense totals per day.
   - `month` is required (`YYYY-MM` format). `weekStartsOn`: `0` = Sunday (default), `1` = Monday.
 
+### User Settings
+
+All endpoints below require `Authorization: Bearer <token>`.
+
+- `GET /users/settings`
+  - Returns the authenticated user's settings: `{ phoneNumber, isDarkMode, notifyByEmail, notifyByMessage }`.
+  - Returns 404 if settings have not been created yet.
+
+- `POST /users/settings`
+  - Creates user settings. `notifyByEmail` and `notifyByMessage` default to `false` if omitted.
+  - Body: `{ "phoneNumber": "...", "isDarkMode": true|false }`
+  - Returns 201 on success, 409 if settings already exist.
+
+- `PUT /users/settings`
+  - Updates all user settings fields.
+  - Body: `{ "phoneNumber": "...", "isDarkMode": true|false, "notifyByEmail": true|false, "notifyByMessage": true|false }`
+  - Returns 200 on success, 404 if settings have not been created yet.
+
 ### User Plan
 
 All endpoints below require `Authorization: Bearer <token>`.
@@ -157,7 +175,7 @@ All endpoints below require `Authorization: Bearer <token>`.
 npm test
 ```
 
-~268 tests across 26 files. No database required — tests mock at the service layer.
+~269 tests across 26 files. No database required — tests mock at the service layer.
 
 ## Docker
 

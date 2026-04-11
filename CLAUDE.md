@@ -91,7 +91,7 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 - Session tokens (JWTs) remain HMAC-SHA256 via `HmacSessionTokenService` — separate from password hashing
 - Never stored or compared as plain strings
 
-**Database:** PostgreSQL via Prisma 6. Schema: `prisma/schema.prisma`. Models: `User`, `CalendarEvent`, `UserPlan`.
+**Database:** PostgreSQL via Prisma 6. Schema: `prisma/schema.prisma`. Models: `User`, `CalendarEvent`, `ForecastEvent`, `UserPlan`, `UserSettings`.
 
 - `db push` for dev (no migration history); use `prisma migrate dev` once a baseline is established
 - `getPrismaClient()` in `src/db/prisma.ts` returns a singleton
@@ -113,28 +113,31 @@ The DI container accepts `AppContainerOverrides` for test mocking. Tests mock at
 
 ## API Routes
 
-| Method | Path                          | Auth | Description                                                                                                   |
-| ------ | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------- |
-| GET    | `/api/v1/health`              | —    | Health check                                                                                                  |
-| POST   | `/api/v1/auth/login`          | —    | Authenticate (Google or email/password)                                                                       |
-| GET    | `/api/v1/auth/me`             | ✓    | Get current user                                                                                              |
-| POST   | `/api/v1/users`               | —    | Register a new user (email/password)                                                                          |
-| GET    | `/api/v1/calendar-events`     | ✓    | List events (query: `month`, `weekStartsOn`)                                                                  |
-| GET    | `/api/v1/calendar-events/:id` | ✓    | Get single event                                                                                              |
-| POST   | `/api/v1/calendar-events`     | ✓    | Create event                                                                                                  |
-| PUT    | `/api/v1/calendar-events/:id` | ✓    | Update event                                                                                                  |
-| DELETE | `/api/v1/calendar-events/:id` | ✓    | Delete event                                                                                                  |
-| GET    | `/api/v1/calendar-day`        | ✓    | Month grid summary (query: `month` required, `weekStartsOn`)                                                  |
-| POST   | `/api/v1/csv/mapped`          | ✓    | Upload CSV (multipart `file` field, ≤5 MB), returns inferred column names and types                           |
-| GET    | `/api/v1/csv/mapping`         | ✓    | List saved CSV mapping templates for the authenticated user                                                   |
-| GET    | `/api/v1/csv/mapping/:id`     | ✓    | Get a single CSV mapping template by ID                                                                       |
-| POST   | `/api/v1/csv/mapping`         | ✓    | Save a CSV mapping template for the authenticated user                                                        |
-| PUT    | `/api/v1/csv/mapping`         | ✓    | Update a CSV mapping template (body: `id`, `name`, `mappings`)                                                |
-| GET    | `/api/v1/csv/import`          | ✓    | List all pending temporary CSV imports for the authenticated user                                             |
-| GET    | `/api/v1/csv/import/:id`      | ✓    | Get a single pending temporary CSV import by ID                                                               |
-| POST   | `/api/v1/csv/import`          | ✓    | Import CSV with mapping template (multipart `file` + `templateId`), returns temp import with valid/error rows |
-| PUT    | `/api/v1/csv/import`          | ✓    | Update a pending temporary CSV import (body: `id`, `data`, `errorsLines`)                                     |
-| POST   | `/api/v1/csv/confirm/:id`     | ✓    | Confirm a temporary CSV import: deduplicates against existing events, inserts new rows, deletes temp import   |
+| Method | Path                          | Auth | Description                                                                                                        |
+| ------ | ----------------------------- | ---- | ------------------------------------------------------------------------------------------------------------------ |
+| GET    | `/api/v1/health`              | —    | Health check                                                                                                       |
+| POST   | `/api/v1/auth/login`          | —    | Authenticate (Google or email/password)                                                                            |
+| GET    | `/api/v1/auth/me`             | ✓    | Get current user                                                                                                   |
+| POST   | `/api/v1/users`               | —    | Register a new user (email/password)                                                                               |
+| GET    | `/api/v1/calendar-events`     | ✓    | List events (query: `month`, `weekStartsOn`)                                                                       |
+| GET    | `/api/v1/calendar-events/:id` | ✓    | Get single event                                                                                                   |
+| POST   | `/api/v1/calendar-events`     | ✓    | Create event                                                                                                       |
+| PUT    | `/api/v1/calendar-events/:id` | ✓    | Update event                                                                                                       |
+| DELETE | `/api/v1/calendar-events/:id` | ✓    | Delete event                                                                                                       |
+| GET    | `/api/v1/calendar-day`        | ✓    | Month grid summary (query: `month` required, `weekStartsOn`)                                                       |
+| POST   | `/api/v1/csv/mapped`          | ✓    | Upload CSV (multipart `file` field, ≤5 MB), returns inferred column names and types                                |
+| GET    | `/api/v1/csv/mapping`         | ✓    | List saved CSV mapping templates for the authenticated user                                                        |
+| GET    | `/api/v1/csv/mapping/:id`     | ✓    | Get a single CSV mapping template by ID                                                                            |
+| POST   | `/api/v1/csv/mapping`         | ✓    | Save a CSV mapping template for the authenticated user                                                             |
+| PUT    | `/api/v1/csv/mapping`         | ✓    | Update a CSV mapping template (body: `id`, `name`, `mappings`)                                                     |
+| GET    | `/api/v1/csv/import`          | ✓    | List all pending temporary CSV imports for the authenticated user                                                  |
+| GET    | `/api/v1/csv/import/:id`      | ✓    | Get a single pending temporary CSV import by ID                                                                    |
+| POST   | `/api/v1/csv/import`          | ✓    | Import CSV with mapping template (multipart `file` + `templateId`), returns temp import with valid/error rows      |
+| PUT    | `/api/v1/csv/import`          | ✓    | Update a pending temporary CSV import (body: `id`, `data`, `errorsLines`)                                          |
+| POST   | `/api/v1/csv/confirm/:id`     | ✓    | Confirm a temporary CSV import: deduplicates against existing events, inserts new rows, deletes temp import        |
+| GET    | `/api/v1/users/settings`      | ✓    | Get user settings (`phoneNumber`, `isDarkMode`, `notifyByEmail`, `notifyByMessage`)                                |
+| POST   | `/api/v1/users/settings`      | ✓    | Create user settings (body: `phoneNumber`, `isDarkMode`; defaults: `notifyByEmail=false`, `notifyByMessage=false`) |
+| PUT    | `/api/v1/users/settings`      | ✓    | Update user settings (body: `phoneNumber`, `isDarkMode`, `notifyByEmail`, `notifyByMessage`)                       |
 | GET    | `/api/v1/users/plan`          | ✓    | Get the authenticated user's plan (budget, reminders); 404 if none exists                                     |
 | POST   | `/api/v1/users/plan`          | ✓    | Create a plan for the authenticated user; 409 if one already exists                                           |
 | PUT    | `/api/v1/users/plan`          | ✓    | Upsert the authenticated user's plan (creates if not found, updates if found)                                 |
@@ -170,6 +173,9 @@ Tests are organized by architectural layer under `tests/`:
 | `tests/presentation/userPlan.test.ts`                                     | Route | GET/POST/PUT user plan endpoints, auth guard, userId spoofing protection         |
 | `tests/application/services/userPlanService.test.ts`                      | Unit  | getPlan, createPlan, upsertPlan service logic                                    |
 | `tests/infrastructure/repositories/prismaUserPlanRepository.test.ts`      | Unit  | UserPlan repository CRUD with mocked Prisma                                      |
+| `tests/presentation/userSettings.test.ts`                                 | Route | User settings GET/POST/PUT, auth guard, 409 conflict, 404 not found              |
+| `tests/application/services/userSettingsService.test.ts`                  | Unit  | Settings get, create, update, not-found and conflict errors                      |
+| `tests/infrastructure/repositories/prismaUserSettingsRepository.test.ts`  | Unit  | Repository find/create/update with mocked Prisma, P2025 handling                 |
 
 ## Environment
 
